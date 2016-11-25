@@ -5,8 +5,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DS_Chat_CS1"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="MainWindow" Height="562.745" Width="716.176" Closed="Window_Closed">
     <Grid>
-        
+        <TextBox x:Name="textBox" HorizontalAlignment="Left" Height="23" Margin="42,76,0,0" TextWrapping="Wrap" Text="127.0.0.1" VerticalAlignment="Top" Width="120"  />
+        <Button x:Name="button" Content="Connect" HorizontalAlignment="Left" Margin="192,79,0,0" VerticalAlignment="Top" Width="75" Click="button_Click"/>
+        <TextBox x:Name="textBox1" HorizontalAlignment="Left" Height="23" Margin="126,400,0,0" TextWrapping="Wrap" Text="127.0.0.1" VerticalAlignment="Top" Width="120"/>
+        <TextBox x:Name="textBox2" HorizontalAlignment="Left" Height="23" Margin="126,445,0,0" TextWrapping="Wrap" Text="12345" VerticalAlignment="Top" Width="120"/>
+        <TextBox x:Name="textBox3" HorizontalAlignment="Left" Height="23" Margin="42,118,0,0" TextWrapping="Wrap" Text="12345" VerticalAlignment="Top" Width="120"/>
+        <Button x:Name="button1" Content="Listen" HorizontalAlignment="Left" Margin="321,445,0,0" VerticalAlignment="Top" Width="75" Click="button1_Click"/>
+        <TextBox x:Name="textBox4" HorizontalAlignment="Left" Height="23" Margin="331,65,0,0" TextWrapping="Wrap" Text="data" VerticalAlignment="Top" Width="120"/>
+        <Button x:Name="button2" Content="Send data" HorizontalAlignment="Left" Margin="479,68,0,0" VerticalAlignment="Top" Width="75" Click="button2_Click"/>
+
     </Grid>
 </Window>
