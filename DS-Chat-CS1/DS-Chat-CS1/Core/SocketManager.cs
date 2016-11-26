@@ -9,47 +9,84 @@ using System.IO;
 
 namespace DS_Chat_CS1.Core
 {
-    public class StateObject
+
+
+    /**
+     * segment size: 8 bytes (atomic)
+     * Queue:
+     * Append to queue, gives id, prepend "BEGIN", append "END"
+     * 
+     * BEGIN, PAUSE, RESUME, END
+     * 
+     * 
+     * 
+     * 
+     * BEGIN 123
+     * asdfghjh
+     * PAUSE 123
+     * BEGIN 345
+     * sadsa
+     * sgffgf
+     * dsadsa
+     * sdasdsa
+     * END 345
+     * RESUME 123
+     * dsadsa
+     * asdsad
+     * fgdgfd
+     * sad
+     * END 123
+     */
+
+    class Packet
     {
-        // Client socket.
-        public Socket workSocket = null;
-        // Size of receive buffer.
-        public const int BufferSize = 2;
-        // Receive buffer.
-        public byte[] buffer = new byte[BufferSize];
-        // Received data string.
-        public StringBuilder sb = new StringBuilder();
+        long id;
     }
 
-    class SocketManager
+
+
+    class SocketListener
     {
+        class StateObject
+        {
+            // Client socket.
+            public Socket workSocket = null;
+            // Size of receive buffer.
+            public const int BufferSize = 2;
+            // Receive buffer.
+            public byte[] buffer = new byte[BufferSize];
+            // Received data string.
+            public StringBuilder sb = new StringBuilder();
+            //
+            public List<byte> byteBuffer = new List<byte>();
+        }
+
+        string TAG = "Listener";
         //Listener Ip
         private IPEndPoint listenerEndpoint;
-
-        private List<Socket> sockets;
         private Socket listener;
         private DebugWindow debugWindow;
 
+        private Packet currentPacket;
 
-        public SocketManager(DebugWindow debugWindow)
+        public SocketListener(DebugWindow debugWindow)
         {
             this.debugWindow = debugWindow;
-            sockets = new List<Socket>();
-
-
         }
 
+        #region Accepting
         public void StartListening(IPEndPoint endPoint)
         {
             this.listenerEndpoint = endPoint;
 
             InitListener();
 
-            debugWindow.addMessage("Listener initiated");
+            debugWindow.addMessage(TAG, "Listener initiated: " + endPoint.ToString());
 
             WaitForClients();
 
         }
+
 
         private void InitListener()
         {
@@ -60,7 +97,7 @@ namespace DS_Chat_CS1.Core
 
         private void WaitForClients()
         {
-           
+            debugWindow.addMessage(TAG, "Waiting for clients...");
             listener.BeginAccept(new AsyncCallback(OnClientConnected), null);
         }
 
@@ -68,19 +105,20 @@ namespace DS_Chat_CS1.Core
         {
             try
             {
-                
-                Socket clientSocket = listener.EndAccept(asyncResult);
-                
 
-                if (clientSocket != null) {
-                    debugWindow.addMessage("Received connection request from: " + clientSocket.RemoteEndPoint.ToString());
+                Socket clientSocket = listener.EndAccept(asyncResult);
+
+
+                if (clientSocket != null)
+                {
+                    debugWindow.addMessage(TAG, "Received connection request from: " + clientSocket.RemoteEndPoint.ToString());
                     HandleClientRequest(clientSocket);
                 }
             }
 
-            catch(Exception e)
+            catch (Exception e)
             {
-                debugWindow.addMessage(e.ToString());
+                debugWindow.addMessage(TAG, e.ToString());
                 throw e;
             }
 
@@ -91,10 +129,10 @@ namespace DS_Chat_CS1.Core
 
         private void HandleClientRequest(Socket clientSocket)
         {
-            sockets.Add(clientSocket);
+            //sockets.Add(clientSocket);
             WaitForReceive(clientSocket);
         }
-
+        #endregion
 
         private void WaitForReceive(Socket clientSocket)
         {
@@ -107,24 +145,28 @@ namespace DS_Chat_CS1.Core
         {
             try
             {
-                StateObject state = (StateObject)asyncResult.AsyncState;
+                StateObject state = (StateObject) asyncResult.AsyncState;
 
                 Socket clientSocket = state.workSocket;
-                
+
                 int bytesRead = clientSocket.EndReceive(asyncResult);
                 if (bytesRead > 0)
                 {
-       
 
-                    state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
+                    for(int i = 0; i < bytesRead; i++)
+                    {
+                        state.byteBuffer.Add(state.buffer[i]);
+                    }
 
-                    string data = state.sb.ToString();
-                    debugWindow.addMessage("Received size: " + bytesRead + "\nData: " + data);
-                  
-                    if(data.EndsWith("#"))
+                    //state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
+
+                   // string data = state.sb.ToString();
+                    debugWindow.addMessage(TAG, "Received size: " + bytesRead + "\nData: " + data);
+
+                    if (data.EndsWith("#"))
                     {
 
-                        debugWindow.addMessage("RECEIVED full message: " + data);
+                        debugWindow.addMessage(TAG, "RECEIVED full message: " + data);
                         HandleFullReceivedMessage(data);
                         //Clear buffers
                         Array.Clear(state.buffer, 0, StateObject.BufferSize);
@@ -134,14 +176,15 @@ namespace DS_Chat_CS1.Core
                 }
                 else
                 {
-                    debugWindow.addMessage("less than 1");
+                    debugWindow.addMessage(TAG, "less than 1");
                 }
 
                 clientSocket.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(OnReceiveData), state);
 
-            } catch(Exception e)
+            }
+            catch (Exception e)
             {
-                debugWindow.addMessage(e.ToString());
+                debugWindow.addMessage(TAG, e.ToString());
             }
 
 
@@ -150,8 +193,27 @@ namespace DS_Chat_CS1.Core
 
         private void HandleFullReceivedMessage(string fullMessage)
         {
-            debugWindow.addMessage("User sent " + fullMessage);
+            debugWindow.addMessage(TAG, "User sent " + fullMessage);
         }
+    }
+
+    class SocketManager
+    {
+
+        private List<Socket> sockets;
+        private DebugWindow debugWindow;
+
+
+        public SocketManager(DebugWindow debugWindow)
+        {
+            this.debugWindow = debugWindow;
+            sockets = new List<Socket>();
+
+
+        }
+
+
+
 
         public void ConnectToClient(IPEndPoint endPoint)
         {
@@ -185,6 +247,7 @@ namespace DS_Chat_CS1.Core
         private void OnSendMessage(IAsyncResult asyncResult)
         {
             Socket socket = (Socket)asyncResult.AsyncState;
+            
             socket.EndSend(asyncResult);
             debugWindow.addMessage("Done sending");
 

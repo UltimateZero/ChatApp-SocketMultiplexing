@@ -67,6 +67,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Core\SendQueue.cs" />
     <Compile Include="Core\SocketManager.cs" />
     <Compile Include="Core\UserConnection.cs" />
     <Compile Include="DebugWindow.xaml.cs">

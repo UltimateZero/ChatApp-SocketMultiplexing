@@ -25,11 +25,11 @@ namespace DS_Chat_CS1
         }
 
 
-        public void addMessage(String message)
+        public void addMessage(string tag, string message)
         {
             Application.Current.Dispatcher.Invoke(new Action(() =>
             {
-                listBox.Items.Add(message);
+                listBox.Items.Add(tag + ": "+ message);
             }));
         }
     }
