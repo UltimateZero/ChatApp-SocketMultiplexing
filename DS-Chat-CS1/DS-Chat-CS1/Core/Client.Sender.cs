@@ -34,15 +34,19 @@ namespace TestSockets2
                 // main thread loop for sending data...
                 while(true)
                 {
-                    if(sendQueue.Count != 0)
+                    lock(sendQueue)
                     {
-                        byte[] data = sendQueue.Dequeue();
-                        _stream.Write(data, 0, data.Length);
+                        if (sendQueue.Count != 0)
+                        {
+                            byte[] data = sendQueue.Dequeue();
+                            _stream.Write(data, 0, data.Length);
+                        }
+                        else
+                        {
+                            Thread.Sleep(1);
+                        }
                     }
-                    else
-                    {
-                        Thread.Sleep(1);
-                    }
+
                 }
             }
 

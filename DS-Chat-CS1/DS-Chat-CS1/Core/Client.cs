@@ -12,11 +12,17 @@ namespace TestSockets2
 {
     partial class Client : IDisposable
     {  // Called by producers to send data over the socket.
-        public void SendData(byte[] data)
+
+        public void SendData(string data)
         {
-            _packetsender.SendData(data);
+            byte[] bytes = Encoding.ASCII.GetBytes(data);
+            SendData(bytes, 1);
         }
 
+        public void SendData(byte[] data, int priority)
+        {
+            _packetsender.SendData(data, priority);
+        }
         // Consumers register to receive data.
         public event EventHandler<PacketFullyReceivedEventArgs> PacketReceived;
 

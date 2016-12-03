@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 using System.Net.Sockets;
 using TestSockets2;
 using System.Runtime.InteropServices;
+using System.IO;
 
 namespace DS_Chat_CS1
 {
@@ -37,7 +38,7 @@ namespace DS_Chat_CS1
             fromClients = new List<Client>();
             InitializeComponent();
 
-            AllocConsole();
+           // AllocConsole();
         }
 
 
@@ -58,22 +59,51 @@ namespace DS_Chat_CS1
             client.PacketReceived += OnPacketReceived;
             toClients.Add(client);
             client.StartConnect(endPoint);
+            btnConnect.IsEnabled = false;
         }
+
+
+
+        int currentPacketType = 0;
 
         private void OnPacketReceived(object sender, PacketFullyReceivedEventArgs e)
         {
             Console.WriteLine("Received Packet in MainWindow");
             List<byte> data = e.Packet.data;
-            string message = Encoding.ASCII.GetString(data.ToArray());
-            if (toClients.Count != 0 && sender == toClients[0] ) //From Alice
+            int newLine = data.IndexOf((byte)'\n');
+            if(newLine != -1)
             {
-                Dispatcher.Invoke(() => { listClientMessages.Items.Add("Alice: " + message); });
-                
+                string type = Encoding.ASCII.GetString(data.ToArray(), 0, newLine);
+                if(type.Equals("TEXT"))
+                {
+                    currentPacketType = 1;
+                } else if(type.Equals("FILE"))
+                {
+                    currentPacketType = 2;
+                }
+
             }
-            else
+            if(currentPacketType == 1)
             {
-                Dispatcher.Invoke(() => { listServerMessages.Items.Add("Bob: " + message); });
+                string message = Encoding.ASCII.GetString(data.ToArray());
+                if (toClients.Count != 0 && sender == toClients[0]) //From Alice
+                {
+                    Dispatcher.Invoke(() => { listClientMessages.Items.Add("Alice: " + message); });
+
+                }
+                else
+                {
+                    Dispatcher.Invoke(() => { listServerMessages.Items.Add("Bob: " + message); });
+                }
+            } else if(currentPacketType == 2)
+            {
+                Dispatcher.Invoke(() => {
+                    int count = Convert.ToInt32(lblServerSegments.Content);
+                    count++;
+                    lblServerSegments.Content = count;
+                });
             }
+
         }
 
         private void btnListen_Click(object sender, RoutedEventArgs e)
@@ -83,6 +113,8 @@ namespace DS_Chat_CS1
             IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse(ipStr), port);
             server = new TcpServer(endPoint);
             server.NewClient += onNewClient;
+
+            btnListen.IsEnabled = false;
         }
 
         private void onNewClient(object sender, Client client)
@@ -102,11 +134,11 @@ namespace DS_Chat_CS1
                 MessageBox.Show("Enter some text first");
                 return;
             }
-            string message = txtClientMessage.Text;
+            string message = "TEXT\n"+txtClientMessage.Text;
 
 
             Client client = toClients[0];
-            client.SendData(Encoding.ASCII.GetBytes(message));
+            client.SendData(message);
             Dispatcher.Invoke(() => { listClientMessages.Items.Add("Bob: " + message); });
         }
 
@@ -117,12 +149,41 @@ namespace DS_Chat_CS1
                 MessageBox.Show("Enter some text first");
                 return;
             }
-            string message = txtServerMessage.Text;
+            string message = "TEXT\n" + txtServerMessage.Text;
 
 
             Client client = fromClients[0];
-            client.SendData(Encoding.ASCII.GetBytes(message));
+            client.SendData(message);
             Dispatcher.Invoke(() => { listServerMessages.Items.Add("Alice: " + message); });
+        }
+
+        private void btnSendFile_Click(object sender, RoutedEventArgs e)
+        {
+            Task.Run(() => {
+                Client client = toClients[0];
+                FileStream fileStream = new FileStream(@"D:\College\AAST\Sixth semester\schedule.PNG", FileMode.Open, FileAccess.Read);
+                int count = 0;
+                byte[] buffer = new byte[8];
+                int offset = 0;
+                List<byte> bytes = new List<byte>();
+                long length = fileStream.Length;
+                long pos = fileStream.Position;
+                Console.WriteLine("File length: " + length);
+                while(pos < length)
+                {
+                    fileStream.Read(buffer, 0, 8);
+                    bytes.AddRange(Encoding.ASCII.GetBytes("FILE\n"));
+                    bytes.AddRange(buffer);
+                    client.SendData(bytes.ToArray(), 3);
+                    pos += 8;
+                    Console.WriteLine("Count: " + count++);
+                    bytes.Clear();
+                }
+            });
+            
+
+
+
         }
     }
 }

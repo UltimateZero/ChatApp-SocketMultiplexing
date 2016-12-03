@@ -17,21 +17,17 @@ namespace TestSockets2
         public PacketSender()
         {
             packetsMap = new ConcurrentDictionary<int, PacketObject>();
-            priorityQueue = new SimplePriorityQueue<Segment>();
+            priorityQueue = new StablePriorityQueue<Segment>(9999);
             _thread = new Thread(Run);
             _thread.Start();
         }
 
-        public void SendData(string data)
-        {
-            byte[] bytes = Encoding.ASCII.GetBytes(data);
-            SendData(bytes);
-        }
-        public void SendData(byte[] data)
+
+        public void SendData(byte[] data, int priority)
         {
             PacketObject packet = new PacketObject();
             packet.id = Interlocked.Increment(ref idCounter);
-            
+            packet.priority = priority;
 
             // Console.WriteLine(packet.ToString());
             if (!packetsMap.TryAdd(packet.id, packet))
@@ -60,15 +56,18 @@ namespace TestSockets2
             packet.segments.Enqueue(seg);
             packet.numOfSegments = packet.segments.Count;
 
-            EnqueuePacket(packet, 0);
+            EnqueuePacket(packet);
         }
 
-        private void EnqueuePacket(PacketObject packet, int priority)
+        private void EnqueuePacket(PacketObject packet)
         {
-            packet.priority = priority;
             while (packet.segments.Count != 0)
             {
-                priorityQueue.Enqueue(packet.segments.Dequeue(), packet.priority); //priority
+                lock(priorityQueue)
+                {
+                    priorityQueue.Enqueue(packet.segments.Dequeue(), packet.priority);
+                }
+                
             }
             Console.WriteLine("Enqueued " + packet.numOfSegments + " segments for packet " + packet.id);
         }
@@ -78,22 +77,26 @@ namespace TestSockets2
         {
             while (true)
             {
-
-                if (priorityQueue.Count != 0)
+                lock(priorityQueue)
                 {
+                    if (priorityQueue.Count != 0)
+                    {
 
-                    Console.WriteLine("Starting to send...");
-                    Segment seg = priorityQueue.Dequeue();
-                   // if (!seg.packet.cancelled) //Ignore if cancelled
-                  //  {
-                        //Blocking send
-                        SendSegment(seg);
-                   // }
+                        Console.WriteLine("Starting to send...");
+                        Segment seg = priorityQueue.Dequeue();
+                        
+                        if (!seg.packet.cancelled) //Ignore if cancelled
+                        {
+                            //Blocking send
+                            SendSegment(seg);
+                        }
+                    }
+                    else
+                    {
+                        Thread.Sleep(1); //Avoid constant CPU usage
+                    }
                 }
-                else 
-                {
-                    Thread.Sleep(1); //Avoid constant CPU usage
-                }
+
             }
         }
 
@@ -156,7 +159,7 @@ namespace TestSockets2
 
         int idCounter = 0;
         int currentId = -1;
-        SimplePriorityQueue<Segment> priorityQueue;
+        StablePriorityQueue<Segment> priorityQueue;
         ConcurrentDictionary<int, PacketObject> packetsMap;
 
         public static readonly int MAX_LENGTH = 8; //Atomic packet in bytes
@@ -179,7 +182,7 @@ namespace TestSockets2
                 return "Packet: id=" + id;
             }
         }
-        class Segment : IComparable
+        class Segment : StablePriorityQueueNode, IComparable
         {
             public PacketObject packet;
             public List<byte> data = new List<byte>();
