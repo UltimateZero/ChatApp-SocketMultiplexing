@@ -38,7 +38,7 @@ namespace DS_Chat_CS1
             fromClients = new List<Client>();
             InitializeComponent();
 
-           // AllocConsole();
+            //AllocConsole();
         }
 
 
@@ -77,9 +77,14 @@ namespace DS_Chat_CS1
                 if(type.Equals("TEXT"))
                 {
                     currentPacketType = 1;
-                } else if(type.Equals("FILE"))
+                }
+                else if(type.Equals("FILE"))
                 {
                     currentPacketType = 2;
+                }
+                else if (type.Equals("FILE1"))
+                {
+                    currentPacketType = 3;
                 }
 
             }
@@ -95,15 +100,25 @@ namespace DS_Chat_CS1
                 {
                     Dispatcher.Invoke(() => { listServerMessages.Items.Add("Bob: " + message); });
                 }
-            } else if(currentPacketType == 2)
+            }
+            else if (currentPacketType == 2)
             {
-                Dispatcher.Invoke(() => {
+                Dispatcher.Invoke(() =>
+                {
                     int count = Convert.ToInt32(lblServerSegments.Content);
                     count++;
                     lblServerSegments.Content = count;
                 });
             }
-
+            else if (currentPacketType == 3)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    int count = Convert.ToInt32(lblSecondSegments.Content);
+                    count++;
+                    lblSecondSegments.Content = count;
+                });
+            }
         }
 
         private void btnListen_Click(object sender, RoutedEventArgs e)
@@ -163,15 +178,14 @@ namespace DS_Chat_CS1
                 Client client = toClients[0];
                 FileStream fileStream = new FileStream(@"D:\College\AAST\Sixth semester\schedule.PNG", FileMode.Open, FileAccess.Read);
                 int count = 0;
-                byte[] buffer = new byte[8];
-                int offset = 0;
+                byte[] buffer = new byte[512];
                 List<byte> bytes = new List<byte>();
                 long length = fileStream.Length;
                 long pos = fileStream.Position;
                 Console.WriteLine("File length: " + length);
                 while(pos < length)
                 {
-                    fileStream.Read(buffer, 0, 8);
+                    fileStream.Read(buffer, 0, buffer.Length);
                     bytes.AddRange(Encoding.ASCII.GetBytes("FILE\n"));
                     bytes.AddRange(buffer);
                     client.SendData(bytes.ToArray(), 3);
@@ -184,6 +198,30 @@ namespace DS_Chat_CS1
 
 
 
+        }
+
+        private void btnSendFile_Copy_Click(object sender, RoutedEventArgs e)
+        {
+            Task.Run(() => {
+                Client client = toClients[0];
+                FileStream fileStream = new FileStream(@"D:\College\AAST\Sixth semester\schedule.PNG", FileMode.Open, FileAccess.Read);
+                int count = 0;
+                byte[] buffer = new byte[512];
+                List<byte> bytes = new List<byte>();
+                long length = fileStream.Length;
+                long pos = fileStream.Position;
+                Console.WriteLine("File length: " + length);
+                while (pos < length)
+                {
+                    fileStream.Read(buffer, 0, buffer.Length);
+                    bytes.AddRange(Encoding.ASCII.GetBytes("FILE1\n"));
+                    bytes.AddRange(buffer);
+                    client.SendData(bytes.ToArray(), 3);
+                    pos += 8;
+                    Console.WriteLine("Count: " + count++);
+                    bytes.Clear();
+                }
+            });
         }
     }
 }

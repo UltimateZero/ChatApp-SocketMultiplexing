@@ -27,6 +27,9 @@
         <Label x:Name="lblServerSegments" Content="0" HorizontalAlignment="Left" Margin="380,440,0,0" VerticalAlignment="Top"/>
         <Label x:Name="lblServerSegments_Copy" Content="Segments:" HorizontalAlignment="Left" Margin="310,440,0,0" VerticalAlignment="Top"/>
         <Button x:Name="btnSendFile" Content="Send File" HorizontalAlignment="Left" Margin="338,106,0,0" VerticalAlignment="Top" Width="75" Click="btnSendFile_Click"/>
+        <Label x:Name="lblSecondSegments" Content="0" HorizontalAlignment="Left" Margin="380,406,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="lblServerSegments_Copy2" Content="Segments:" HorizontalAlignment="Left" Margin="310,406,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="btnSendFile_Copy" Content="Send File" HorizontalAlignment="Left" Margin="338,146,0,0" VerticalAlignment="Top" Width="75" Click="btnSendFile_Copy_Click"/>
 
     </Grid>
 </Window>

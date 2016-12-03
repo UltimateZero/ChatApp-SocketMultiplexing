@@ -17,7 +17,7 @@ namespace TestSockets2
         public PacketSender()
         {
             packetsMap = new ConcurrentDictionary<int, PacketObject>();
-            priorityQueue = new StablePriorityQueue<Segment>(9999);
+            priorityQueue = new FastPriorityQueue<PacketObject>(10000);
             _thread = new Thread(Run);
             _thread.Start();
         }
@@ -55,40 +55,102 @@ namespace TestSockets2
             }
             packet.segments.Enqueue(seg);
             packet.numOfSegments = packet.segments.Count;
-
-            EnqueuePacket(packet);
+            lock (lockObj)
+                EnqueuePacket(packet);
         }
 
         private void EnqueuePacket(PacketObject packet)
         {
-            while (packet.segments.Count != 0)
+            lock (lockObj)
             {
-                lock(priorityQueue)
-                {
-                    priorityQueue.Enqueue(packet.segments.Dequeue(), packet.priority);
-                }
-                
+                priorityQueue.Enqueue(packet, packet.priority);
             }
+
+            //while (packet.segments.Count != 0)
+            //{
+            //    lock(priorityQueue)
+            //    {
+            //        priorityQueue.Enqueue(packet.segments.Dequeue(), packet.priority);
+            //    }
+
+            //}
             Console.WriteLine("Enqueued " + packet.numOfSegments + " segments for packet " + packet.id);
         }
 
-
+        object lockObj = new object();
+        List<byte> dataBuffer = new List<byte>();
         private void Run()
         {
             while (true)
             {
-                lock(priorityQueue)
+
+                lock (lockObj)
                 {
                     if (priorityQueue.Count != 0)
                     {
 
                         Console.WriteLine("Starting to send...");
-                        Segment seg = priorityQueue.Dequeue();
-                        
-                        if (!seg.packet.cancelled) //Ignore if cancelled
+                        PacketObject head = priorityQueue.First;
+                        if (head.cancelled) continue;
+
+                        if (currentId != head.id)
                         {
-                            //Blocking send
-                            SendSegment(seg);
+                            currentId = head.id;
+                            dataBuffer.Add(SWITCH); //Switch
+                            AddId(dataBuffer, currentId);
+                        }
+
+
+                        int toRead = head.offset + MAX_LENGTH;
+                        if (toRead > head.data.Length)
+                        {
+                            toRead = toRead - head.data.Length;
+                        }
+                        for (int i = head.offset; i < toRead; i++)
+                        {
+                            if (head.data[i] >= SWITCH && head.data[i] <= ESC) //Escape
+                            {
+                                dataBuffer.Add(ESC);
+                            }
+                            dataBuffer.Add(head.data[i]);
+                        }
+
+                        head.offset = toRead;
+                        if (head.offset >= head.data.Length)
+                        {
+                            //Send END
+                            dataBuffer.Add(END);
+                            AddId(dataBuffer, currentId);
+                        }
+
+
+
+
+
+                        if (head.segments.Count != 0)
+                        {
+                            Segment seg = head.segments.Dequeue();
+
+                            if (!seg.packet.cancelled)
+                            {
+                                //Blocking send
+                                SendSegment(seg);
+
+                            }
+                            else
+                            {
+                                priorityQueue.Remove(head);
+                            }
+
+                        }
+                        else
+                        {
+                            if (priorityQueue.Contains(head) && head != null)
+                            {
+                                Console.WriteLine("Queue: " + priorityQueue.Count);
+                                priorityQueue.Remove(head);
+                            }
+
                         }
                     }
                     else
@@ -112,7 +174,7 @@ namespace TestSockets2
             EscapeAndAddData(data, seg.data.ToArray());
 
             var handler = DataReady;
-            if(handler != null)
+            if (handler != null)
             {
                 handler(this, new DataReadyEventArgs() { Data = data.ToArray() });
                 Console.WriteLine("Sent segment for packet " + seg.packet.id);
@@ -135,6 +197,14 @@ namespace TestSockets2
 
         }
 
+        private void SendBytes(byte[] data)
+        {
+            var handler = DataReady;
+            if (handler != null)
+            {
+                handler(this, new DataReadyEventArgs() { Data = data });
+            }
+        }
 
         private void EscapeAndAddData(List<byte> buf, byte[] data)
         {
@@ -154,25 +224,27 @@ namespace TestSockets2
             buf.AddRange(idBytes);
         }
 
-         
+
         Thread _thread;
 
         int idCounter = 0;
         int currentId = -1;
-        StablePriorityQueue<Segment> priorityQueue;
+        FastPriorityQueue<PacketObject> priorityQueue;
         ConcurrentDictionary<int, PacketObject> packetsMap;
 
-        public static readonly int MAX_LENGTH = 8; //Atomic packet in bytes
+        public static readonly int MAX_LENGTH = 256; //Atomic packet in bytes
 
 
         public static readonly byte SWITCH = PacketReceiver.SWITCH;
         public static readonly byte END = PacketReceiver.END;
         public static readonly byte ESC = PacketReceiver.ESC;
 
-        class PacketObject
+        class PacketObject : FastPriorityQueueNode
         {
             public int id;
             public int priority = 0;
+            public int offset = 0;
+            public byte[] data;
             public int sentSegments = 0;
             public int numOfSegments = 0;
             public bool cancelled = false;
@@ -182,7 +254,7 @@ namespace TestSockets2
                 return "Packet: id=" + id;
             }
         }
-        class Segment : StablePriorityQueueNode, IComparable
+        class Segment : IComparable
         {
             public PacketObject packet;
             public List<byte> data = new List<byte>();

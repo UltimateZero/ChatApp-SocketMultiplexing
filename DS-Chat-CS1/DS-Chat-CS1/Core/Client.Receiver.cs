@@ -14,7 +14,7 @@ namespace TestSockets2
     {
         private class Receiver
         {
-            private static readonly int BUFFER_SIZE = 8;
+            private static readonly int BUFFER_SIZE = 256;
             internal event EventHandler<DataReceivedEventArgs> DataReceived;
 
             internal Receiver(NetworkStream stream)
