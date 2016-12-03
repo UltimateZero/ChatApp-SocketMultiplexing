@@ -1,0 +1,52 @@
+﻿<UserControl x:Class="HCI_Library.Pages.Books"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:HCI_Library.Pages"
+             mc:Ignorable="d" >
+    <Grid Background="White">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0" Orientation="Vertical" Margin="8,8,5,0">
+            <Image x:Name="btnRefresh" Source="RefreshIcon.png" Width="32" Height="32" MouseLeftButtonUp="btnRefresh_MouseLeftButtonUp" Cursor="Hand" ToolTip="Refresh"></Image>
+            <Image x:Name="btnAdd" Source="Picture4.png" Width="32" Height="32" MouseLeftButtonUp="btnAdd_MouseLeftButtonUp" Cursor="Hand" ToolTip="Add new book" Margin="0,8,0,0"></Image>
+        </StackPanel>
+        <ListView Grid.Column="1" x:Name="listBooks" ScrollViewer.HorizontalScrollBarVisibility="Disabled" BorderBrush="{x:Null}" MouseDoubleClick="listBooks_MouseDoubleClick" >
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel/>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Padding" Value="3"/>
+                    <Setter Property="Margin" Value="15"/>
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <DockPanel Width="200" Height="285">
+                        <DockPanel.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Request book" Click="listBook_Request"></MenuItem>
+                            </ContextMenu>
+                        </DockPanel.ContextMenu>
+                        <Image Source="{Binding ImageUrl}" Width="175" Height="220" DockPanel.Dock="Top" Margin="0,0,0,6">
+                            <Image.Effect>
+                                <DropShadowEffect Direction="0" Opacity="0.6" ShadowDepth="0" BlurRadius="10"/>
+                            </Image.Effect>
+                        </Image>
+                        <StackPanel DockPanel.Dock="Bottom" Orientation="Vertical">
+                            <Label Content="{Binding Title}" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="14"/>
+                            <Label Content="{Binding Author}" HorizontalAlignment="Center" VerticalAlignment="Top" Foreground="#FF515151"/>
+                        </StackPanel>
+
+                    </DockPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</UserControl>

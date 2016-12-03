@@ -1,5 +1,4 @@
-﻿using DS_Chat_CS1.Core;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -15,6 +14,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Net.Sockets;
+using TestSockets2;
+using System.Runtime.InteropServices;
 
 namespace DS_Chat_CS1
 {
@@ -23,53 +24,105 @@ namespace DS_Chat_CS1
     /// </summary>
     public partial class MainWindow : Window
     {
-        SocketManager socketMan;
-        DebugWindow debugWindow;
+        [DllImport("Kernel32")]
+        public static extern void AllocConsole();
+
+        TcpServer server;
+        List<Client> toClients;
+        List<Client> fromClients;
 
         public MainWindow()
         {
+            toClients = new List<Client>();
+            fromClients = new List<Client>();
             InitializeComponent();
-            debugWindow = new DebugWindow();
-            debugWindow.Show();
-            socketMan = new SocketManager(debugWindow);
+
+            AllocConsole();
         }
+
 
         private void Window_Closed(object sender, EventArgs e)
         {
             Environment.Exit(0);
         }
 
-        private void button_Click(object sender, RoutedEventArgs e)
-        {
-            string ipStr = textBox.GetLineText(0);
-            int port = Convert.ToInt32(textBox3.GetLineText(0));
-            IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse(ipStr), port);
 
-            socketMan.ConnectToClient(endPoint);
- 
+
+
+        private void btnConnect_Click(object sender, RoutedEventArgs e)
+        {
+            string ipStr = clientIp.Text;
+            int port = Convert.ToInt32(clientPort.Text);
+            IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse(ipStr), port);
+            Client client = new Client();
+            client.PacketReceived += OnPacketReceived;
+            toClients.Add(client);
+            client.StartConnect(endPoint);
         }
 
-        private void button1_Click(object sender, RoutedEventArgs e)
+        private void OnPacketReceived(object sender, PacketFullyReceivedEventArgs e)
         {
-            string ipStr = textBox1.GetLineText(0);
-            int port = Convert.ToInt32(textBox2.GetLineText(0));
-            IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse(ipStr), port);
-            socketMan.StartListening(endPoint);
+            Console.WriteLine("Received Packet in MainWindow");
+            List<byte> data = e.Packet.data;
+            string message = Encoding.ASCII.GetString(data.ToArray());
+            if (toClients.Count != 0 && sender == toClients[0] ) //From Alice
+            {
+                Dispatcher.Invoke(() => { listClientMessages.Items.Add("Alice: " + message); });
+                
+            }
+            else
+            {
+                Dispatcher.Invoke(() => { listServerMessages.Items.Add("Bob: " + message); });
+            }
         }
 
-        private void button2_Click(object sender, RoutedEventArgs e)
+        private void btnListen_Click(object sender, RoutedEventArgs e)
         {
-            if(textBox4.Text.Trim().Length == 0)
+            string ipStr = serverIp.Text;
+            int port = Convert.ToInt32(serverPort.Text);
+            IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse(ipStr), port);
+            server = new TcpServer(endPoint);
+            server.NewClient += onNewClient;
+        }
+
+        private void onNewClient(object sender, Client client)
+        {
+            client.PacketReceived += OnPacketReceived;
+            fromClients.Add(client);
+            Console.WriteLine("MainWindow: Client from listener added to list");
+        }
+
+        
+
+
+        private void btnClientSend_Click(object sender, RoutedEventArgs e)
+        {
+            if (txtClientMessage.Text.Trim().Length == 0)
             {
                 MessageBox.Show("Enter some text first");
                 return;
             }
-            debugWindow.addMessage("Send data clicked");
-            string message = textBox4.GetLineText(0) + "#";
-
-            socketMan.SendToClient(0, message);
+            string message = txtClientMessage.Text;
 
 
+            Client client = toClients[0];
+            client.SendData(Encoding.ASCII.GetBytes(message));
+            Dispatcher.Invoke(() => { listClientMessages.Items.Add("Bob: " + message); });
+        }
+
+        private void btnServerSend_Click(object sender, RoutedEventArgs e)
+        {
+            if (txtServerMessage.Text.Trim().Length == 0)
+            {
+                MessageBox.Show("Enter some text first");
+                return;
+            }
+            string message = txtServerMessage.Text;
+
+
+            Client client = fromClients[0];
+            client.SendData(Encoding.ASCII.GetBytes(message));
+            Dispatcher.Invoke(() => { listServerMessages.Items.Add("Alice: " + message); });
         }
     }
 }

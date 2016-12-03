@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1B7CCA4A-D669-4AAB-9143-175D968FD9DA}</ProjectGuid>
+    <ProjectGuid>{D561D074-C929-4B92-908F-A470062578DE}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DS_Chat_CS1</RootNamespace>
-    <AssemblyName>DS-Chat-CS1</AssemblyName>
+    <RootNamespace>HCI_Library</RootNamespace>
+    <AssemblyName>HCI_Library</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -35,10 +35,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Priority Queue, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OptimizedPriorityQueue.4.0.0\lib\net45\Priority Queue.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
+    <Reference Include="Microsoft.Expression.Drawing, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -59,10 +56,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="DebugWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -71,24 +64,73 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Client.cs" />
-    <Compile Include="Core\Client.Receiver.cs" />
-    <Compile Include="Core\Client.Sender.cs" />
-    <Compile Include="Core\Events\DataReadyEventArgs.cs" />
-    <Compile Include="Core\Events\DataReceivedEventArgs.cs" />
-    <Compile Include="Core\Events\PacketFullyReceivedEventArgs.cs" />
-    <Compile Include="Core\PacketReceiver.cs" />
-    <Compile Include="Core\PacketSender.cs" />
-    <Compile Include="Core\TcpServer.cs" />
-    <Compile Include="DebugWindow.xaml.cs">
-      <DependentUpon>DebugWindow.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="Core\Book.cs" />
+    <Compile Include="Core\ConnectionManager.cs" />
+    <Compile Include="Core\User.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Pages\BookInfo.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Books.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\BooksContainer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Help.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Login.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\MainAll.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Profile.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Requests.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PageSwitcher.cs" />
+    <Compile Include="Pages\BookInfo.xaml.cs">
+      <DependentUpon>BookInfo.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Books.xaml.cs">
+      <DependentUpon>Books.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\BooksContainer.xaml.cs">
+      <DependentUpon>BooksContainer.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Help.xaml.cs">
+      <DependentUpon>Help.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\ISwitchable.cs" />
+    <Compile Include="Pages\Login.xaml.cs">
+      <DependentUpon>Login.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\MainAll.xaml.cs">
+      <DependentUpon>MainAll.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Profile.xaml.cs">
+      <DependentUpon>Profile.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Requests.xaml.cs">
+      <DependentUpon>Requests.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -106,7 +148,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -116,7 +157,60 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Pages\error.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pages\Icons\BookIcon.png" />
+    <Resource Include="Pages\Icons\HelpIcon.png" />
+    <Resource Include="Pages\Icons\PowerIcon.png" />
+    <Resource Include="Pages\Icons\ProfileIcon.png" />
+    <Resource Include="Pages\Icons\RefreshIcon.png" />
+    <Resource Include="Pages\Icons\RequestIcon.png" />
+    <Resource Include="Pages\Icons\SearchIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pages\PowerIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pages\BookIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pages\ProfileIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pages\RequestIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pages\HelpIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pages\RefreshIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pages\Icons\Book1.jpeg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pages\Icons\Book2.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pages\Printed-Matter-Books-icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pages\Household-Bell-Service-icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pages\Icons\Picture4.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pages\Picture4.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pages\Icons\placeholder-user.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pages\placeholder-user.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -1,0 +1,440 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Net;
+using System.Net.Sockets;
+using System.IO;
+
+
+namespace TestSockets1
+{
+    class StateObject
+    {
+        // Client socket.
+        public Socket workSocket = null;
+        // Size of receive buffer.
+        public const int BufferSize = 2;
+        // Receive buffer.
+        public byte[] buffer = new byte[BufferSize];
+        // Received data string.
+        public StringBuilder sb = new StringBuilder();
+        //
+        public List<byte> byteBuffer = new List<byte>();
+
+    }
+
+    class Program
+    {
+        IPEndPoint listenerEndpoint = new IPEndPoint(IPAddress.Loopback, 12345);
+        Socket listener;
+        public Program()
+        {
+            listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            listener.Bind(listenerEndpoint);
+            listener.Listen(100);
+
+            WaitForClients();
+        }
+
+        private void WaitForClients()
+        {
+            Console.WriteLine("Waiting for clients...");
+            listener.BeginAccept(new AsyncCallback((asyncResult) =>
+            {
+                try
+                {
+
+                    Socket clientSocket = listener.EndAccept(asyncResult);
+
+
+                    if (clientSocket != null)
+                    {
+                        Console.WriteLine("Received connection request from: " + clientSocket.RemoteEndPoint.ToString());
+                        HandleClientRequest(clientSocket);
+                    }
+                }
+
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                    throw e;
+                }
+
+                //Continue waiting for more clients
+                WaitForClients();
+
+            }), null);
+        }
+
+
+        private void HandleClientRequest(Socket clientSocket)
+        {
+            //sockets.Add(clientSocket);
+            WaitForReceive(clientSocket);
+        }
+
+        private void WaitForReceive(Socket clientSocket)
+        {
+            StateObject state = new StateObject();
+            state.workSocket = clientSocket;
+            clientSocket.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(OnReceiveData), state);
+        }
+
+
+        enum PacketState
+        {
+            NORMAL, IN_ESC, READING_ID
+        }
+
+        PacketState packetState = PacketState.NORMAL;
+        byte begin = 7;
+        byte end = 8;
+        byte pause = 9;
+        byte resume = 10;
+        byte esc = 11;
+
+        byte swit = 12;
+
+        //Next 4 bytes are packet id (int)
+        List<byte> idBuffer = new List<byte>();
+        enum ReceiveState
+        {
+            BEGIN, END, PAUSE, RESUME
+        }
+
+        ReceiveState receiveState;
+        private void ParsePacket(byte[] buffer)
+        {
+            foreach (byte b in buffer)
+            {
+                //Console.WriteLine("Byte: " + b);
+                //Console.WriteLine("PacketState: " + packetState.ToString());
+                switch (packetState)
+                {
+                    case PacketState.NORMAL:
+
+                        if (b == begin)
+                        {
+                            //Console.WriteLine("Found BEGIN");
+                            receiveState = ReceiveState.BEGIN;
+                            packetState = PacketState.READING_ID;
+                        }
+                        else if (b == end)
+                        {
+                            //Console.WriteLine("Found END");
+                            receiveState = ReceiveState.END;
+                            packetState = PacketState.READING_ID;
+                           
+                        }
+                        else if (b == pause)
+                        {
+                            //Console.WriteLine("Found PAUSE");
+                            receiveState = ReceiveState.PAUSE;
+                            packetState = PacketState.READING_ID;
+                            
+                        }
+                        else if (b == resume)
+                        {
+                            //Console.WriteLine("Found RESUME");
+                            receiveState = ReceiveState.RESUME;
+                            packetState = PacketState.READING_ID;
+                            
+                        }
+                        else if (b == esc)
+                        {
+                            packetState = PacketState.IN_ESC;
+                            Console.WriteLine("Found ESC");
+                        }
+
+                        else
+                        {
+                           // Console.WriteLine("Appending byte");
+                            AppendToPacket(b);
+                        }
+
+                        break;
+
+                    case PacketState.IN_ESC:
+                        Console.WriteLine("Appending escaped byte");
+                        AppendToPacket(b);
+                        packetState = PacketState.NORMAL;
+                        
+                        break;
+
+                    case PacketState.READING_ID:
+                        idBuffer.Add(b);
+                        //Console.WriteLine("Appending ID byte");
+                        if (idBuffer.Count == 4)
+                        {
+                            byte[] buf = idBuffer.ToArray();
+                            idBuffer.Clear();
+                            packetState = PacketState.NORMAL;
+
+                            int id = IPAddress.HostToNetworkOrder(BitConverter.ToInt32(buf, 0));
+                            //Console.WriteLine("Found ID: " + id);
+                            AddPacketId(id);
+                            
+                        }
+                        break;
+                }
+
+            }
+        }
+
+
+        class Packet
+        {
+            public int id;
+            public int length;
+            public List<byte> byteBuffer = new List<byte>();
+
+        }
+
+
+        Dictionary<int, Packet> packetsMap = new Dictionary<int, Packet>();
+        int currentId = -1;
+
+
+
+        private void AddPacketId(int id)
+        {
+            currentId = id;
+            switch (receiveState)
+            {
+                case ReceiveState.BEGIN:
+                    NewPacket(id);
+                    break;
+                case ReceiveState.END:
+                    FinalizePacket(id);
+                    break;
+                case ReceiveState.RESUME:
+                    ResumePacket(id);
+                    break;
+                case ReceiveState.PAUSE:
+                    PausePacket(id);
+                    break;
+            }
+
+           
+        }
+
+        private void NewPacket(int id)
+        {
+            Console.WriteLine("Beginning new packet " + id);
+            Packet packet = new Packet();
+            packet.id = id;
+            packetsMap.Add(id, packet);
+        }
+
+        private void FinalizePacket(int id)
+        {
+            Console.WriteLine("Finishing packet " + id);
+            HandleFinishedPacket(packetsMap[id]);
+            currentId = -1;
+        }
+
+
+        private void ResumePacket(int id)
+        {
+            Console.WriteLine("Resuming packet " + id);
+            currentId = id;
+        }
+
+        private void PausePacket(int id)
+        {
+            Console.WriteLine("Pausing packet " + id);
+            //is paused
+        }
+
+
+        private void AppendToPacket(byte b)
+        {
+            Console.WriteLine("Appending data to packet id " + currentId);
+            packetsMap[currentId].byteBuffer.Add(b);
+        }
+
+        private void HandleFinishedPacket(Packet packet)
+        {
+            Console.WriteLine("Packet with id " + packet.id + " is done, size " + packet.byteBuffer.Count);
+            Console.WriteLine("As bytes: " + (BitConverter.ToString(packet.byteBuffer.ToArray())));
+            Console.WriteLine("As string: " + Encoding.ASCII.GetString(packet.byteBuffer.ToArray(), 0, packet.byteBuffer.Count));
+        }
+
+        private void OnReceiveData(IAsyncResult asyncResult)
+        {
+
+            StateObject state = (StateObject)asyncResult.AsyncState;
+
+            Socket clientSocket = state.workSocket;
+
+            int bytesRead = clientSocket.EndReceive(asyncResult);
+
+            for (int i = 0; i < state.buffer.Length; i++)
+            {
+                state.byteBuffer.Add(state.buffer[i]);
+            }
+
+            ParsePacket(state.buffer);
+
+            state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
+
+            string data = state.sb.ToString();
+
+            Console.WriteLine("Receiving data, Length: " + bytesRead);
+
+       
+            //Clear state buffer
+            Array.Clear(state.buffer, 0, StateObject.BufferSize);
+       
+
+
+            //Receive again
+            clientSocket.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(OnReceiveData), state);
+
+        }
+
+        /*
+                 byte begin = 7;
+        byte end = 8;
+        byte pause = 9;
+        byte resume = 10;
+        byte esc = 11;
+             */
+
+
+
+            static void AddId(List<byte> buf, int id)
+        {
+            byte[] idBytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(id));
+            foreach (byte b in idBytes)
+            {
+                buf.Add(b);
+            }
+        }
+
+        static void SafeSend(List<byte> buf, byte[] msg)
+        {
+            foreach(byte b in msg)
+            {
+                if(b >= 7 && b <= 11)
+                {
+                    buf.Add(11);
+                }
+                buf.Add(b);
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            Program prog = new Program();
+
+            byte[] buff = new byte[] {
+                7, 0, 0, 0, 123, //BEGIN 123
+
+                22,11,8,33,44,55, //Content
+
+                9, 0, 0, 0, 123, //PAUSE 123
+                 7, 0, 0, 0, 124, //BEGIN 124
+                 34,54,66,       //Content
+                 22,33,44,      //Content
+                  8, 0, 0, 0, 124, //END 124
+                   10, 0, 0, 0, 123, //RESUME 123
+                   12,34,56,77, //Content
+                    8, 0, 0, 0, 123 //END 123
+            };
+
+            List<byte> toSend = new List<byte>();
+            int packet1 = 123;
+            int packet2 = 124;
+
+            toSend.Add(7); //Begin
+            AddId(toSend, packet1);
+
+            byte[] msg = Encoding.ASCII.GetBytes("Hello ");
+            SafeSend(toSend, msg);
+
+            toSend.Add(9); //Pause
+            AddId(toSend, packet1);
+
+            toSend.Add(7); //Begin
+            AddId(toSend, packet2);
+
+            msg = new byte[] { 44,55,66,8,8,11,99};//Encoding.ASCII.GetBytes("Hello from the other side");
+            SafeSend(toSend, msg);
+
+            toSend.Add(8); //End
+            AddId(toSend, packet2);
+
+            toSend.Add(10); //Resume
+            AddId(toSend, packet1);
+
+            msg = Encoding.ASCII.GetBytes("world");
+            SafeSend(toSend, msg);
+
+            toSend.Add(8); //End
+            AddId(toSend, packet1);
+
+            prog.ParsePacket(toSend.ToArray());
+            //Console.WriteLine("s or c?");
+            //string choice = Console.ReadLine().Trim();
+            //if (choice.Equals("s"))
+            //{
+            //    new Program();
+            //    while (true)
+            //    {
+            //        Console.Read();
+            //    }
+            //}
+            //else if (choice.Equals("c"))
+            //{
+            //    Client client = new Client();
+            //    while (true)
+            //    {
+            //        string input = Console.ReadLine().Trim();
+            //        if (input.Equals("q"))
+            //        {
+
+            //        }
+            //        else
+            //        {
+            //            client.SendMessage(input);
+            //        }
+            //    }
+            //}
+
+
+        }
+    }
+}
+
+
+class Client
+{
+    Socket socket;
+    public Client()
+    {
+        socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        IPEndPoint endPoint = new IPEndPoint(IPAddress.Loopback, 12345);
+
+        socket.Connect(endPoint);
+        Console.WriteLine("Client: connected");
+
+    }
+
+    public void SendMessage(string message)
+    {
+        message = "BEGIN 123#" + message + "END 123#";
+        byte[] data = Encoding.ASCII.GetBytes(message);
+        socket.BeginSend(data, 0, data.Length, 0, new AsyncCallback(OnSendMessage), socket);
+    }
+
+    private void OnSendMessage(IAsyncResult asyncResult)
+    {
+        Socket socket = (Socket)asyncResult.AsyncState;
+
+        socket.EndSend(asyncResult);
+        Console.WriteLine("Done sending");
+
+    }
+}

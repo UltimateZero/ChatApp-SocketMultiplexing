@@ -7,14 +7,23 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="562.745" Width="716.176" Closed="Window_Closed">
     <Grid>
-        <TextBox x:Name="textBox" HorizontalAlignment="Left" Height="23" Margin="42,76,0,0" TextWrapping="Wrap" Text="127.0.0.1" VerticalAlignment="Top" Width="120"  />
-        <Button x:Name="button" Content="Connect" HorizontalAlignment="Left" Margin="192,79,0,0" VerticalAlignment="Top" Width="75" Click="button_Click"/>
-        <TextBox x:Name="textBox1" HorizontalAlignment="Left" Height="23" Margin="126,400,0,0" TextWrapping="Wrap" Text="127.0.0.1" VerticalAlignment="Top" Width="120"/>
-        <TextBox x:Name="textBox2" HorizontalAlignment="Left" Height="23" Margin="126,445,0,0" TextWrapping="Wrap" Text="12345" VerticalAlignment="Top" Width="120"/>
-        <TextBox x:Name="textBox3" HorizontalAlignment="Left" Height="23" Margin="42,118,0,0" TextWrapping="Wrap" Text="12345" VerticalAlignment="Top" Width="120"/>
-        <Button x:Name="button1" Content="Listen" HorizontalAlignment="Left" Margin="321,445,0,0" VerticalAlignment="Top" Width="75" Click="button1_Click"/>
-        <TextBox x:Name="textBox4" HorizontalAlignment="Left" Height="23" Margin="331,65,0,0" TextWrapping="Wrap" Text="data" VerticalAlignment="Top" Width="120"/>
-        <Button x:Name="button2" Content="Send data" HorizontalAlignment="Left" Margin="479,68,0,0" VerticalAlignment="Top" Width="75" Click="button2_Click"/>
+        <TextBox x:Name="clientIp" HorizontalAlignment="Left" Height="23" Margin="578,161,0,0" TextWrapping="Wrap" Text="127.0.0.1" VerticalAlignment="Top" Width="120"  />
+        <Button x:Name="btnConnect" Content="Connect" HorizontalAlignment="Left" Margin="623,238,0,0" VerticalAlignment="Top" Width="75" Click="btnConnect_Click"/>
+        <TextBox x:Name="serverIp" HorizontalAlignment="Left" Height="23" Margin="561,406,0,0" TextWrapping="Wrap" Text="127.0.0.1" VerticalAlignment="Top" Width="120"/>
+        <TextBox x:Name="serverPort" HorizontalAlignment="Left" Height="23" Margin="561,451,0,0" TextWrapping="Wrap" Text="12345" VerticalAlignment="Top" Width="120"/>
+        <TextBox x:Name="clientPort" HorizontalAlignment="Left" Height="23" Margin="578,202,0,0" TextWrapping="Wrap" Text="12345" VerticalAlignment="Top" Width="120"/>
+        <Button x:Name="btnListen" Content="Listen" HorizontalAlignment="Left" Margin="606,489,0,0" VerticalAlignment="Top" Width="75" Click="btnListen_Click"/>
+        <TextBox x:Name="txtClientMessage" HorizontalAlignment="Left" Height="23" Margin="36,216,0,0" TextWrapping="Wrap" Text="data" VerticalAlignment="Top" Width="146"/>
+        <Button x:Name="btnClientSend" Content="Send data" HorizontalAlignment="Left" Margin="201,219,0,0" VerticalAlignment="Top" Width="75" Click="btnClientSend_Click"/>
+        <Separator HorizontalAlignment="Center" Height="5"  VerticalAlignment="Center" Width="708" Margin="0,216"/>
+        <Label x:Name="label" Content="Server" HorizontalAlignment="Left" Margin="10,271,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label1" Content="Client" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label2" Content="Bob" HorizontalAlignment="Left" Margin="69,10,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label3" Content="Alice" HorizontalAlignment="Left" Margin="69,271,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="txtServerMessage" HorizontalAlignment="Left" Height="23" Margin="36,486,0,0" TextWrapping="Wrap" Text="data" VerticalAlignment="Top" Width="146"/>
+        <Button x:Name="btnServerSend" Content="Send data" HorizontalAlignment="Left" Margin="201,489,0,0" VerticalAlignment="Top" Width="75" Click="btnServerSend_Click"/>
+        <ListBox x:Name="listServerMessages" HorizontalAlignment="Left" Height="160" Margin="36,321,0,0" VerticalAlignment="Top" Width="164"/>
+        <ListBox x:Name="listClientMessages" HorizontalAlignment="Left" Height="160" Margin="36,51,0,0" VerticalAlignment="Top" Width="164"/>
 
     </Grid>
 </Window>
