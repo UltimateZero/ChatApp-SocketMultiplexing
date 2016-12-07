@@ -14,7 +14,7 @@ namespace DS_Chat_CS1.Core.LowLevel
     {
         private class Receiver
         {
-            private static readonly int RECEIVE_BUFFER_SIZE = 256;
+            private static readonly int RECEIVE_BUFFER_SIZE = 512;
             internal event EventHandler<DataReceivedEventArgs> DataReceived;
 
             internal Receiver(NetworkStream stream)

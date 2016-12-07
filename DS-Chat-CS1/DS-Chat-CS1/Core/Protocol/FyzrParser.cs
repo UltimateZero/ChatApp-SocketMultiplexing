@@ -91,7 +91,7 @@ namespace DS_Chat_CS1.Core.Protocol
                 }
             }
 
-            Console.WriteLine("From Data: \n" + packet.ToString());
+            //Console.WriteLine("From Data: \n" + packet.ToString());
             return packet;
 
         }

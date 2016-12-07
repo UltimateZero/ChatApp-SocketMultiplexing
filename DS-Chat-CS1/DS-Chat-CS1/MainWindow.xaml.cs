@@ -40,7 +40,7 @@ namespace DS_Chat_CS1
             fromClients = new List<Client>();
             InitializeComponent();
 
-            //AllocConsole();
+            AllocConsole();
         }
 
 
@@ -65,8 +65,9 @@ namespace DS_Chat_CS1
             btnConnect.IsEnabled = false;
         }
 
-       
-
+        Dictionary<string, FileStream> filesMap = new Dictionary<string, FileStream>();
+        Dictionary<string, long> filesSegmentsMap = new Dictionary<string, long>();
+        FileStream fs;
         private void OnPacketReceived(object sender, PacketFullyReceivedEventArgs e)
         {
             Console.WriteLine("Received Packet in MainWindow");
@@ -74,7 +75,7 @@ namespace DS_Chat_CS1
             FyzrPacket packet = FyzrParser.FromData(data.ToArray());
 
 
-            switch(packet.method)
+            switch (packet.method)
             {
                 case FyzrPacket.Method.TEXT:
                     Encoding enc = Encoding.GetEncoding(packet.headers["Content-Encoding"]);
@@ -92,25 +93,59 @@ namespace DS_Chat_CS1
                     }
                     break;
                 case FyzrPacket.Method.FILE:
-                    string fileName = packet.headers["Filename"];
-                    if(fileName.Equals("copy.png"))
+                   
+                    lock (filesMap)
                     {
-                        Dispatcher.Invoke(() =>
+                        string fileName = packet.headers["Filename"];
+                        string path = @"D:\College\AAST\Sixth semester\" + fileName;
+                        FileStream fs;
+                        if (!filesMap.ContainsKey(fileName))
                         {
-                            int count = Convert.ToInt32(lblSecondSegments.Content);
-                            count++;
-                            lblSecondSegments.Content = count;
-                        });
+                            filesMap.Add(fileName, new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None));
+                            filesMap[fileName].SetLength(Convert.ToInt32(packet.headers["Total-Length"]));
+
+                            filesSegmentsMap.Add(fileName, 0);
+                        }
+
+                        fs = filesMap[fileName];
+                        filesSegmentsMap[fileName]++;
+
+                        int segmentLength = Convert.ToInt32(packet.headers["Content-Length"]);
+                        int segmentCount = Convert.ToInt32(packet.headers["Segment"]);
+                        int totalSegments = Convert.ToInt32(packet.headers["Total-Segments"]);
+
+                        long pos = Convert.ToInt32(packet.headers["Position"]);
+
+                        fs.Seek(pos, SeekOrigin.Begin);
+
+                        fs.Write(packet.body, 0, packet.body.Length);
+
+                        if (filesSegmentsMap[fileName] == totalSegments)
+                        {
+                            fs.Flush();
+                            fs.Close();
+                            fs = null;
+                            filesMap.Remove(fileName);
+                            filesSegmentsMap.Remove(fileName);
+                            Console.WriteLine("Done file");
+                        }
                     }
-                    else
+
+                    Dispatcher.Invoke(() =>
                     {
-                        Dispatcher.Invoke(() =>
-                        {
-                            int count = Convert.ToInt32(lblServerSegments.Content);
-                            count++;
-                            lblServerSegments.Content = count;
-                        });
-                    }
+                        int count = Convert.ToInt32(lblSecondSegments.Content);
+                        count++;
+                        lblSecondSegments.Content = count;
+                    });
+
+
+                    //Dispatcher.Invoke(() =>
+                    //{
+                    //    int count = Convert.ToInt32(lblServerSegments.Content);
+                    //    count++;
+                    //    lblServerSegments.Content = count;
+                    //});
+
                     break;
             }
 
@@ -134,7 +169,7 @@ namespace DS_Chat_CS1
             Console.WriteLine("MainWindow: Client from listener added to list");
         }
 
-        
+
 
 
         private void btnClientSend_Click(object sender, RoutedEventArgs e)
@@ -173,30 +208,47 @@ namespace DS_Chat_CS1
             Dispatcher.Invoke(() => { listServerMessages.Items.Add("Alice: " + message); });
         }
 
+        int maxSegmentSize = 1024;
+        private void SendFile(string absolutePath, string fileName, Client client)
+        {
+            FileStream fileStream = new FileStream(absolutePath, FileMode.Open, FileAccess.Read);
+
+            byte[] buffer = new byte[maxSegmentSize];
+            
+            long length = fileStream.Length;
+            long segmentCount = 1;
+            long totalSegments = (long)Math.Ceiling((double)length / buffer.Length);
+
+            long pos = 0;
+            Console.WriteLine("File length: " + length);
+            while (pos < length)
+            {
+                int bytesRead = fileStream.Read(buffer, 0, buffer.Length);
+
+                byte[] data = new byte[bytesRead];
+                Array.Copy(buffer, 0, data, 0, bytesRead);
+
+                FyzrPacket packet = FileProtocol.CreateFilePacket(data, fileName, MessageProtocol.MessageType.PRIVATE, null);
+                packet.headers.Add("Total-Length", "" + length);
+                packet.headers.Add("Total-Segments", "" + totalSegments);
+                packet.headers.Add("Segment", "" + segmentCount);
+                packet.headers.Add("Position", "" + pos);
+
+                client.SendRandom(FyzrParser.ToData(packet));
+                pos += buffer.Length;
+                Console.WriteLine("Count: " + segmentCount++);
+                Console.WriteLine("Bytes read: " + bytesRead);
+            }
+        }
+
         private void btnSendFile_Click(object sender, RoutedEventArgs e)
         {
-            Task.Run(() => {
+            Task.Run(() =>
+            {
                 Client client = toClients[0];
-                FileStream fileStream = new FileStream(@"D:\College\AAST\Sixth semester\schedule.PNG", FileMode.Open, FileAccess.Read);
-                int count = 0;
-                byte[] buffer = new byte[512];
-                List<byte> bytes = new List<byte>();
-                long length = fileStream.Length;
-                long pos = fileStream.Position;
-                Console.WriteLine("File length: " + length);
-                while(pos < length)
-                {
-                    fileStream.Read(buffer, 0, buffer.Length);
-                    bytes.AddRange(Encoding.ASCII.GetBytes("FILE\n"));
-                    bytes.AddRange(buffer);
-                    FyzrPacket packet = FileProtocol.CreateFilePacket(bytes.ToArray(), "org.png", MessageProtocol.MessageType.PRIVATE, null);
-                    client.SendRandom(FyzrParser.ToData(packet));
-                    pos += buffer.Length;
-                    Console.WriteLine("Count: " + count++);
-                    bytes.Clear();
-                }
+                SendFile(@"D:\College\AAST\Sixth semester\schedule.PNG", "org.png", client);
             });
-            
+
 
 
 
@@ -204,26 +256,10 @@ namespace DS_Chat_CS1
 
         private void btnSendFile_Copy_Click(object sender, RoutedEventArgs e)
         {
-            Task.Run(() => {
+            Task.Run(() =>
+            {
                 Client client = toClients[0];
-                FileStream fileStream = new FileStream(@"D:\College\AAST\Sixth semester\schedule.PNG", FileMode.Open, FileAccess.Read);
-                int count = 0;
-                byte[] buffer = new byte[512];
-                List<byte> bytes = new List<byte>();
-                long length = fileStream.Length;
-                long pos = fileStream.Position;
-                Console.WriteLine("File length: " + length);
-                while (pos < length)
-                {
-                    fileStream.Read(buffer, 0, buffer.Length);
-                    bytes.AddRange(Encoding.ASCII.GetBytes("FILE1\n"));
-                    bytes.AddRange(buffer);
-                    FyzrPacket packet = FileProtocol.CreateFilePacket(bytes.ToArray(), "copy.png", MessageProtocol.MessageType.PRIVATE, null);
-                    client.SendRandom(FyzrParser.ToData(packet));
-                    pos += buffer.Length;
-                    Console.WriteLine("Count: " + count++);
-                    bytes.Clear();
-                }
+                SendFile(@"D:\College\AAST\Sixth semester\test.txt", "copy.txt", client);
             });
         }
     }
