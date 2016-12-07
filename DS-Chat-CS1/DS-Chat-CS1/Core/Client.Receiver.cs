@@ -14,12 +14,12 @@ namespace TestSockets2
     {
         private class Receiver
         {
-            private static readonly int BUFFER_SIZE = 256;
+            private static readonly int RECEIVE_BUFFER_SIZE = 256;
             internal event EventHandler<DataReceivedEventArgs> DataReceived;
 
             internal Receiver(NetworkStream stream)
             {
-                _data = new byte[BUFFER_SIZE];
+                _data = new byte[RECEIVE_BUFFER_SIZE];
                 _stream = stream;
                 _thread = new Thread(Run);
                 _thread.Start();

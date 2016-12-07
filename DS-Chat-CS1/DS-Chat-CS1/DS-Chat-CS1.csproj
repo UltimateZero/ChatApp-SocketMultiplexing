@@ -79,6 +79,8 @@
     <Compile Include="Core\Events\PacketFullyReceivedEventArgs.cs" />
     <Compile Include="Core\PacketReceiver.cs" />
     <Compile Include="Core\PacketSender.cs" />
+    <Compile Include="Core\Protocol\FyzrPacket.cs" />
+    <Compile Include="Core\Protocol\FyzrParser.cs" />
     <Compile Include="Core\TcpServer.cs" />
     <Compile Include="DebugWindow.xaml.cs">
       <DependentUpon>DebugWindow.xaml</DependentUpon>

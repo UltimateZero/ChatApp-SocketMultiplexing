@@ -44,6 +44,7 @@ namespace DS_Chat_CS1
 
         private void Window_Closed(object sender, EventArgs e)
         {
+            Client.ShutdownEvent.Set();
             Environment.Exit(0);
         }
 
@@ -189,7 +190,7 @@ namespace DS_Chat_CS1
                     bytes.AddRange(Encoding.ASCII.GetBytes("FILE\n"));
                     bytes.AddRange(buffer);
                     client.SendData(bytes.ToArray(), 3);
-                    pos += 8;
+                    pos += buffer.Length;
                     Console.WriteLine("Count: " + count++);
                     bytes.Clear();
                 }
@@ -217,7 +218,7 @@ namespace DS_Chat_CS1
                     bytes.AddRange(Encoding.ASCII.GetBytes("FILE1\n"));
                     bytes.AddRange(buffer);
                     client.SendData(bytes.ToArray(), 3);
-                    pos += 8;
+                    pos += buffer.Length;
                     Console.WriteLine("Count: " + count++);
                     bytes.Clear();
                 }

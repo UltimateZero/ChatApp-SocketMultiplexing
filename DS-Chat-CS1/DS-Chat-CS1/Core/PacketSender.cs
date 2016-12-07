@@ -26,7 +26,7 @@ namespace TestSockets2
         }
 
 
-        public void SendData(byte[] data, int priority)
+        public int SendData(byte[] data, int priority)
         {
             PacketObject packet = new PacketObject();
             packet.id = Interlocked.Increment(ref idCounter);
@@ -41,6 +41,7 @@ namespace TestSockets2
             Console.WriteLine("Preparing packet with id " + packet.id);
             
             EnqueuePacket(packet);
+            return packet.id;
         }
 
         private void EnqueuePacket(PacketObject packet)
