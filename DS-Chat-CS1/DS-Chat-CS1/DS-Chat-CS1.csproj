@@ -71,17 +71,21 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Client.cs" />
-    <Compile Include="Core\Client.Receiver.cs" />
-    <Compile Include="Core\Client.Sender.cs" />
+    <Compile Include="Core\LowLevel\Client.cs" />
+    <Compile Include="Core\LowLevel\Client.Receiver.cs" />
+    <Compile Include="Core\LowLevel\Client.Sender.cs" />
     <Compile Include="Core\Events\DataReadyEventArgs.cs" />
     <Compile Include="Core\Events\DataReceivedEventArgs.cs" />
     <Compile Include="Core\Events\PacketFullyReceivedEventArgs.cs" />
-    <Compile Include="Core\PacketReceiver.cs" />
-    <Compile Include="Core\PacketSender.cs" />
+    <Compile Include="Core\Events\PacketSentEventArgs.cs" />
+    <Compile Include="Core\LowLevel\PacketReceiver.cs" />
+    <Compile Include="Core\LowLevel\PacketSender.cs" />
+    <Compile Include="Core\Protocol\FileProtocol.cs" />
     <Compile Include="Core\Protocol\FyzrPacket.cs" />
     <Compile Include="Core\Protocol\FyzrParser.cs" />
-    <Compile Include="Core\TcpServer.cs" />
+    <Compile Include="Core\LowLevel\TcpServer.cs" />
+    <Compile Include="Core\Protocol\MessageProtocol.cs" />
+    <Compile Include="Core\Protocol\TextProtocol.cs" />
     <Compile Include="DebugWindow.xaml.cs">
       <DependentUpon>DebugWindow.xaml</DependentUpon>
     </Compile>

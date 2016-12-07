@@ -1,6 +1,6 @@
-﻿using System;
+﻿using DS_Chat_CS1.Core.Events;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace TestSockets2
+namespace DS_Chat_CS1.Core.LowLevel
 {
     partial class Client
     {
@@ -43,7 +43,7 @@ namespace TestSockets2
                             }
                             else if ((bytesRead = _stream.Read(_data, 0, _data.Length)) > 0)
                             {
-                                Console.WriteLine("Received some data");
+                                //Console.WriteLine("Received some data");
     
                                 var handler = DataReceived;
                                 if (handler != null)

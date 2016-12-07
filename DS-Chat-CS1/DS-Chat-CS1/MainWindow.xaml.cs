@@ -14,9 +14,11 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Net.Sockets;
-using TestSockets2;
 using System.Runtime.InteropServices;
 using System.IO;
+using DS_Chat_CS1.Core.LowLevel;
+using DS_Chat_CS1.Core.Events;
+using DS_Chat_CS1.Core.Protocol;
 
 namespace DS_Chat_CS1
 {
@@ -63,63 +65,55 @@ namespace DS_Chat_CS1
             btnConnect.IsEnabled = false;
         }
 
-
-
-        int currentPacketType = 0;
+       
 
         private void OnPacketReceived(object sender, PacketFullyReceivedEventArgs e)
         {
             Console.WriteLine("Received Packet in MainWindow");
             List<byte> data = e.Packet.data;
-            int newLine = data.IndexOf((byte)'\n');
-            if(newLine != -1)
-            {
-                string type = Encoding.ASCII.GetString(data.ToArray(), 0, newLine);
-                if(type.Equals("TEXT"))
-                {
-                    currentPacketType = 1;
-                }
-                else if(type.Equals("FILE"))
-                {
-                    currentPacketType = 2;
-                }
-                else if (type.Equals("FILE1"))
-                {
-                    currentPacketType = 3;
-                }
+            FyzrPacket packet = FyzrParser.FromData(data.ToArray());
 
-            }
-            if(currentPacketType == 1)
-            {
-                string message = Encoding.ASCII.GetString(data.ToArray());
-                if (toClients.Count != 0 && sender == toClients[0]) //From Alice
-                {
-                    Dispatcher.Invoke(() => { listClientMessages.Items.Add("Alice: " + message); });
 
-                }
-                else
-                {
-                    Dispatcher.Invoke(() => { listServerMessages.Items.Add("Bob: " + message); });
-                }
-            }
-            else if (currentPacketType == 2)
+            switch(packet.method)
             {
-                Dispatcher.Invoke(() =>
-                {
-                    int count = Convert.ToInt32(lblServerSegments.Content);
-                    count++;
-                    lblServerSegments.Content = count;
-                });
+                case FyzrPacket.Method.TEXT:
+                    Encoding enc = Encoding.GetEncoding(packet.headers["Content-Encoding"]);
+                    if (enc == null)
+                        enc = Encoding.Default;
+                    string message = enc.GetString(packet.body);
+                    if (toClients.Count != 0 && sender == toClients[0]) //From Alice
+                    {
+                        Dispatcher.Invoke(() => { listClientMessages.Items.Add("Alice: " + message); });
+
+                    }
+                    else
+                    {
+                        Dispatcher.Invoke(() => { listServerMessages.Items.Add("Bob: " + message); });
+                    }
+                    break;
+                case FyzrPacket.Method.FILE:
+                    string fileName = packet.headers["Filename"];
+                    if(fileName.Equals("copy.png"))
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            int count = Convert.ToInt32(lblSecondSegments.Content);
+                            count++;
+                            lblSecondSegments.Content = count;
+                        });
+                    }
+                    else
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            int count = Convert.ToInt32(lblServerSegments.Content);
+                            count++;
+                            lblServerSegments.Content = count;
+                        });
+                    }
+                    break;
             }
-            else if (currentPacketType == 3)
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    int count = Convert.ToInt32(lblSecondSegments.Content);
-                    count++;
-                    lblSecondSegments.Content = count;
-                });
-            }
+
         }
 
         private void btnListen_Click(object sender, RoutedEventArgs e)
@@ -150,11 +144,14 @@ namespace DS_Chat_CS1
                 MessageBox.Show("Enter some text first");
                 return;
             }
-            string message = "TEXT\n"+txtClientMessage.Text;
+            string message = txtClientMessage.Text;
 
 
             Client client = toClients[0];
-            client.SendData(message);
+            client.SendOrdered(
+              FyzrParser.ToData(
+                  TextProtocol.CreateTextPacket(message, MessageProtocol.MessageType.PRIVATE, null)
+                   ));
             Dispatcher.Invoke(() => { listClientMessages.Items.Add("Bob: " + message); });
         }
 
@@ -165,11 +162,14 @@ namespace DS_Chat_CS1
                 MessageBox.Show("Enter some text first");
                 return;
             }
-            string message = "TEXT\n" + txtServerMessage.Text;
+            string message = txtServerMessage.Text;
 
 
             Client client = fromClients[0];
-            client.SendData(message);
+            client.SendOrdered(
+                FyzrParser.ToData(
+                    TextProtocol.CreateTextPacket(message, MessageProtocol.MessageType.PRIVATE, null)
+                    ));
             Dispatcher.Invoke(() => { listServerMessages.Items.Add("Alice: " + message); });
         }
 
@@ -189,7 +189,8 @@ namespace DS_Chat_CS1
                     fileStream.Read(buffer, 0, buffer.Length);
                     bytes.AddRange(Encoding.ASCII.GetBytes("FILE\n"));
                     bytes.AddRange(buffer);
-                    client.SendData(bytes.ToArray(), 3);
+                    FyzrPacket packet = FileProtocol.CreateFilePacket(bytes.ToArray(), "org.png", MessageProtocol.MessageType.PRIVATE, null);
+                    client.SendRandom(FyzrParser.ToData(packet));
                     pos += buffer.Length;
                     Console.WriteLine("Count: " + count++);
                     bytes.Clear();
@@ -217,7 +218,8 @@ namespace DS_Chat_CS1
                     fileStream.Read(buffer, 0, buffer.Length);
                     bytes.AddRange(Encoding.ASCII.GetBytes("FILE1\n"));
                     bytes.AddRange(buffer);
-                    client.SendData(bytes.ToArray(), 3);
+                    FyzrPacket packet = FileProtocol.CreateFilePacket(bytes.ToArray(), "copy.png", MessageProtocol.MessageType.PRIVATE, null);
+                    client.SendRandom(FyzrParser.ToData(packet));
                     pos += buffer.Length;
                     Console.WriteLine("Count: " + count++);
                     bytes.Clear();

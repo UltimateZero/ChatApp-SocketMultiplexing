@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace TestSockets2
+namespace DS_Chat_CS1.Core.LowLevel
 {
     partial class Client
     {

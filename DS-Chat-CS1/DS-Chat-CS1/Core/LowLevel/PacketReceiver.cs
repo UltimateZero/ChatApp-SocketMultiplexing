@@ -1,10 +1,11 @@
-﻿using System;
+﻿using DS_Chat_CS1.Core.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TestSockets2
+namespace DS_Chat_CS1.Core.LowLevel
 {
     class Packet
     {
@@ -95,13 +96,13 @@ namespace TestSockets2
                 case ReceiveState.SWITCH:
                     if (packetsMap.ContainsKey(currentId))
                     {
-                        Console.WriteLine("Resuming packet " + currentId);
+                        //Console.WriteLine("Resuming packet " + currentId);
                     }
                     else
                     {
-                        if (prevId != currentId && prevId != -1)
-                            Console.WriteLine("Pausing packet " + prevId);
-                        Console.WriteLine("Beginning new packet " + currentId);
+                        //if (prevId != currentId && prevId != -1)
+                            //Console.WriteLine("Pausing packet " + prevId);
+                        //Console.WriteLine("Beginning new packet " + currentId);
                         Packet packet = new Packet();
                         packet.id = currentId;
                         packetsMap.Add(currentId, packet);
@@ -109,7 +110,7 @@ namespace TestSockets2
 
                     break;
                 case ReceiveState.END:
-                    Console.WriteLine("Finishing packet " + currentId);
+                    //Console.WriteLine("Finishing packet " + currentId);
                     HandleFinishedPacket(packetsMap[currentId]);
                     prevId = currentId;
                     currentId = -1;

@@ -1,10 +1,11 @@
-﻿using System;
+﻿using DS_Chat_CS1.Core.LowLevel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TestSockets2
+namespace DS_Chat_CS1.Core.Events
 {
     class PacketFullyReceivedEventArgs
     {

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace DS_Chat_CS1.Core.Protocol
 {
-    class FyzerParser
+    class FyzrParser
     {
         enum Phase
         {
@@ -15,7 +16,7 @@ namespace DS_Chat_CS1.Core.Protocol
 
 
 
-        public FyzrPacket FromData(byte[] data)
+        public static FyzrPacket FromData(byte[] data)
         {
             Phase phase = Phase.METHOD;
             FyzrPacket packet = new FyzrPacket();
@@ -33,32 +34,29 @@ namespace DS_Chat_CS1.Core.Protocol
                         if (b == '\n')
                         {
                             phase = Phase.HEADER;
-
-                            if (method.Equals("COMMAND"))
+                            try
                             {
-                                packet.method = FyzrPacket.Method.COMMAND;
-                            }
-                            else if (method.Equals("TEXT"))
+                                packet.method = (FyzrPacket.Method)Enum.Parse(typeof(FyzrPacket.Method), method);
+                            } catch(Exception)
                             {
-                                packet.method = FyzrPacket.Method.TEXT;
+                                packet.method = FyzrPacket.Method.UNKNOWN;
                             }
-                            else if (method.Equals("FILE"))
-                            {
-                                packet.method = FyzrPacket.Method.FILE;
-                            }
+                            
 
                         }
-                        else
+                        else {
                             method += (char)b;
+                        }
+                            
                         break;
                     case Phase.HEADER:
                         if (b == '\n')
                         {
                             newLineCounter++;
+                            header += '\n';
                             if (newLineCounter == 2)
                             {
                                 phase = Phase.BODY;
-
                                 string[] lines = header.Split(new char[] { '\n' });
                                 foreach (string line in lines)
                                 {
@@ -71,14 +69,13 @@ namespace DS_Chat_CS1.Core.Protocol
 
 
                             }
-                            else
-                            {
-                                newLineCounter = 0;
-                            }
 
                         }
                         else
+                        {
                             header += (char)b;
+                            newLineCounter = 0;
+                        }
                         break;
                     case Phase.BODY:
                         if (packet.body == null)
@@ -94,28 +91,20 @@ namespace DS_Chat_CS1.Core.Protocol
                 }
             }
 
-
+            Console.WriteLine("From Data: \n" + packet.ToString());
             return packet;
 
         }
 
 
-        public byte[] ToData(FyzrPacket packet)
+        public static byte[] ToData(FyzrPacket packet)
         {
+            Console.WriteLine("To Data: \n" + packet.ToString());
             List<byte> data = new List<byte>();
 
-            switch (packet.method)
-            {
-                case FyzrPacket.Method.COMMAND:
-                    data.AddRange(Encoding.ASCII.GetBytes("COMMAND"));
-                    break;
-                case FyzrPacket.Method.TEXT:
-                    data.AddRange(Encoding.ASCII.GetBytes("TEXT"));
-                    break;
-                case FyzrPacket.Method.FILE:
-                    data.AddRange(Encoding.ASCII.GetBytes("FILE"));
-                    break;
-            }
+
+          
+            data.AddRange(Encoding.ASCII.GetBytes(packet.method.ToString()));
 
             data.Add((byte)'\n');
 
@@ -123,6 +112,7 @@ namespace DS_Chat_CS1.Core.Protocol
             {
                 string line = "";
                 line += entry.Key + ": " + entry.Value + "\n";
+                data.AddRange(Encoding.ASCII.GetBytes(line));
             }
 
             data.Add((byte)'\n');
