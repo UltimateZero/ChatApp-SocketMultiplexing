@@ -17,8 +17,8 @@ namespace DS_Chat_CS1.Model
                 RaisePropertyChanged("ImageUrl");
             }
         }
-        private int _loading = 0;
-        public int Loading
+        private double _loading = 0;
+        public double Loading
         {
             get { return _loading; }
             set

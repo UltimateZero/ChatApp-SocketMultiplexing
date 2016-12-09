@@ -29,7 +29,7 @@ namespace DS_Chat_CS1
         public static extern void AllocConsole();
         public ChatWindow()
         {
-            AllocConsole();
+           // AllocConsole();
             InitializeComponent();
         //    messages.Add(new TextMessage()
         //    {
@@ -197,6 +197,63 @@ namespace DS_Chat_CS1
             }
         }
 
+        internal MediaMessage CreateMediaMessage(string fileName)
+        {
+            var msg = new MediaMessage()
+            {
+                Side = MessageSide.You
+            };
+            Dispatcher.Invoke(() => { AddToMessages(msg); });
+
+            return msg;
+        }
+
+        private void btnSendMedia_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var dlg = new System.Windows.Forms.OpenFileDialog();
+
+
+                // Create OpenFileDialog 
+                // Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+
+
+
+                // Set filter for file extension and default file extension 
+                dlg.DefaultExt = ".png";
+                dlg.Filter = "MP3 Files (*.mp3)|*.mp3|MP4 Files (*.mp4)|*.mp4|AVI Files (*.avi)|*.avi";
+
+
+                // Display OpenFileDialog by calling ShowDialog method 
+                var result = dlg.ShowDialog();
+
+
+                // Get the selected file name and display in a TextBox 
+                if (result == System.Windows.Forms.DialogResult.OK)
+                {
+                    // Open document 
+                    string path = dlg.FileName;
+                    string filename = dlg.SafeFileName;
+                    Console.WriteLine(path);
+                    var msg = new MediaMessage()
+                    {
+                        MediaUrl = path,
+                        Side = MessageSide.Me
+                    };
+                    AddToMessages(msg);
+                    Task.Run(() =>
+                    {
+                        MainContext.Instance.SendMediaFile(this, path, filename, msg);
+                    });
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
 
         private void AddToMessages(Message msg)
         {
@@ -230,5 +287,7 @@ namespace DS_Chat_CS1
                 ConversationScrollViewer.ScrollToVerticalOffset(ConversationScrollViewer.ExtentHeight);
             }
         }
+
+
     }
 }

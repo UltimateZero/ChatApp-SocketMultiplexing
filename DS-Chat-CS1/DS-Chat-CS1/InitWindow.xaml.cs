@@ -29,7 +29,7 @@ namespace DS_Chat_CS1
         Lobby lobby;
         public InitWindow()
         {
-            AllocConsole();
+            //AllocConsole();
             InitializeComponent();
             login = new Login();
             lobby = new Lobby();

@@ -21,8 +21,8 @@ namespace DS_Chat_CS1.Model
                 RaisePropertyChanged("MediaUrl");
             }
         }
-        private int _loading = 0;
-        public int Loading
+        private double _loading = 0;
+        public double Loading
         {
             get { return _loading; }
             set
@@ -35,14 +35,7 @@ namespace DS_Chat_CS1.Model
 
         public MediaMessage()
         {
-            Task.Run(() => {
-                for (int i = 0; i < 4; i++)
-                {
-                    Thread.Sleep(500);
-                    Loading += 25;
-                }
 
-            });
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

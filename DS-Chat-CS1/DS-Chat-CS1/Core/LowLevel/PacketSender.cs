@@ -12,9 +12,16 @@ using System.Windows;
 
 namespace DS_Chat_CS1.Core.LowLevel
 {
+
+    class RoundRobinQueue
+    {
+
+    }
+
+
     public class PacketSender
     {
-        public static readonly int MAX_LENGTH = 512; //Atomic packet in bytes
+        public static readonly int MAX_LENGTH = 1024*10; //Atomic packet in bytes
 
         internal event EventHandler<DataReadyEventArgs> DataReady;
         internal event EventHandler<PacketSentEventArgs> PacketSent;
