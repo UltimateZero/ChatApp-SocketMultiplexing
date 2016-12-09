@@ -121,6 +121,11 @@ namespace DS_Chat_CS1.Core.LowLevel
             Client.ShutdownEvent.Set();
         }
 
+        internal IPEndPoint GetRemoteEndPoint()
+        {
+            return (IPEndPoint) _client.Client.RemoteEndPoint;
+        }
+
         private PacketSender _packetsender;
         private PacketReceiver _packetreceiver;
         private TcpClient _client;

@@ -1,0 +1,41 @@
+﻿<UserControl x:Class="DS_Chat_CS1.Pages.Lobby"
+             xmlns:Controls="clr-namespace:MahApps.Metro;assembly=MahApps.Metro"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DS_Chat_CS1.Pages"
+             mc:Ignorable="d" 
+             d:DesignHeight="400" d:DesignWidth="500">
+    <Grid Background="White">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Margin="5" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="Users" Margin="2,0,0,2"/>
+            <ListBox x:Name="listUsers" Grid.Row="1" Width="120" BorderThickness="1">
+                <ListBoxItem>Test</ListBoxItem>
+                <ListBoxItem>Test</ListBoxItem>
+                <ListBoxItem>Test</ListBoxItem>
+            </ListBox>
+            <StackPanel Grid.Row="2" Margin="2,2,0,2" Orientation="Horizontal">
+                <TextBlock Text="Rooms" VerticalAlignment="Bottom" />
+            </StackPanel>
+            <ListBox x:Name="listRooms" Grid.Row="3" BorderThickness="1">
+                <ListBoxItem>Test</ListBoxItem>
+                <ListBoxItem>Test</ListBoxItem>
+                <ListBoxItem>Test</ListBoxItem>
+            </ListBox>
+            <Button x:Name="btnCreateRoom" Style="{StaticResource AccentedSquareButtonStyle}" Content="Create Room" Grid.Row="4" Margin="0,3,0,0"/>
+        </Grid>
+    </Grid>
+</UserControl>

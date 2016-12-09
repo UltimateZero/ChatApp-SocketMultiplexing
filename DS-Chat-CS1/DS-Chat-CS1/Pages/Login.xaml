@@ -1,0 +1,20 @@
+﻿<UserControl x:Class="DS_Chat_CS1.Pages.Login"
+              xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DS_Chat_CS1.Pages"
+             mc:Ignorable="d" 
+             d:DesignHeight="400" d:DesignWidth="500">
+    <Grid Background="White">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+         <TextBox x:Name="txtNickname" Width="150" Controls:TextBoxHelper.Watermark="Nickname" Margin="0,100,0,25" VerticalAlignment="Center" KeyUp="txtNickname_KeyUp" />
+            <Button x:Name="btnConnect" Width="70" Style="{DynamicResource SquareButtonStyle}" Content="Connect" Margin="0,0,0,50" VerticalAlignment="Bottom" Click="btnConnect_Click"></Button>
+            <StackPanel x:Name="indicatorsPanel" Visibility="Hidden">
+                <TextBlock x:Name="lblState" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#FF00159B">Connecting...</TextBlock>
+                <Controls:ProgressRing x:Name="progressRing" IsActive="False" Margin="0,20,0,0" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</UserControl>

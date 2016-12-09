@@ -19,13 +19,14 @@ using System.IO;
 using DS_Chat_CS1.Core.LowLevel;
 using DS_Chat_CS1.Core.Events;
 using DS_Chat_CS1.Core.Protocol;
+using MahApps.Metro.Controls;
 
 namespace DS_Chat_CS1
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : MetroWindow
     {
         [DllImport("Kernel32")]
         public static extern void AllocConsole();
@@ -67,7 +68,7 @@ namespace DS_Chat_CS1
 
         Dictionary<string, FileStream> filesMap = new Dictionary<string, FileStream>();
         Dictionary<string, long> filesSegmentsMap = new Dictionary<string, long>();
-        FileStream fs;
+   
         private void OnPacketReceived(object sender, PacketFullyReceivedEventArgs e)
         {
             Console.WriteLine("Received Packet in MainWindow");
