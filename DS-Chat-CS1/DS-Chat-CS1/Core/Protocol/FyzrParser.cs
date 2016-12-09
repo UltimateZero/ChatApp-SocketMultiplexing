@@ -14,8 +14,6 @@ namespace DS_Chat_CS1.Core.Protocol
             METHOD, HEADER, BODY
         }
 
-
-
         public static FyzrPacket FromData(byte[] data)
         {
             Phase phase = Phase.METHOD;

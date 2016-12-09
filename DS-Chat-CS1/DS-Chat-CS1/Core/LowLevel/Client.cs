@@ -45,7 +45,7 @@ namespace DS_Chat_CS1.Core.LowLevel
 
 
         public static ManualResetEvent ShutdownEvent = new ManualResetEvent(false);
-
+        
 
         public Client() 
             : this(null)

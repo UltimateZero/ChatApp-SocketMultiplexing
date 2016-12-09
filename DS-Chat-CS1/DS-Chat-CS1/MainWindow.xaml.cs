@@ -67,7 +67,7 @@ namespace DS_Chat_CS1
 
         Dictionary<string, FileStream> filesMap = new Dictionary<string, FileStream>();
         Dictionary<string, long> filesSegmentsMap = new Dictionary<string, long>();
-        FileStream fs;
+        
         private void OnPacketReceived(object sender, PacketFullyReceivedEventArgs e)
         {
             Console.WriteLine("Received Packet in MainWindow");
@@ -79,8 +79,8 @@ namespace DS_Chat_CS1
             {
                 case FyzrPacket.Method.TEXT:
                     Encoding enc = Encoding.GetEncoding(packet.headers["Content-Encoding"]);
-                    if (enc == null)
-                        enc = Encoding.Default;
+                    
+
                     string message = enc.GetString(packet.body);
                     if (toClients.Count != 0 && sender == toClients[0]) //From Alice
                     {
@@ -97,7 +97,7 @@ namespace DS_Chat_CS1
                     lock (filesMap)
                     {
                         string fileName = packet.headers["Filename"];
-                        string path = @"D:\College\AAST\Sixth semester\" + fileName;
+                        string path = @"C:\Users\User\Documents\TestFolder\" + fileName;
                         FileStream fs;
                         if (!filesMap.ContainsKey(fileName))
                         {
@@ -246,7 +246,7 @@ namespace DS_Chat_CS1
             Task.Run(() =>
             {
                 Client client = toClients[0];
-                SendFile(@"D:\College\AAST\Sixth semester\schedule.PNG", "org.png", client);
+                SendFile(@"C:\Users\User\Documents\TestFolder\pic.jpg", "copy.jpg", client);
             });
 
 
@@ -259,7 +259,7 @@ namespace DS_Chat_CS1
             Task.Run(() =>
             {
                 Client client = toClients[0];
-                SendFile(@"D:\College\AAST\Sixth semester\test.txt", "copy.txt", client);
+                SendFile(@"C:\Users\User\Documents\TestFolder\text.txt", "copy.txt", client);
             });
         }
     }
