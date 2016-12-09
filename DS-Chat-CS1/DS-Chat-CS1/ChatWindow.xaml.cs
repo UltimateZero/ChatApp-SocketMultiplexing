@@ -100,7 +100,10 @@ namespace DS_Chat_CS1
 
         internal void ShowWindow()
         {
-            Dispatcher.Invoke(()=>{ Show(); });
+            Dispatcher.Invoke(()=>{
+                Show();
+                Activate();
+            });
         }
 
         private async void test(MediaMessage msg)
@@ -127,17 +130,24 @@ namespace DS_Chat_CS1
                 else
                 {
                     e.Handled = true;
-                    TextMessage msg = new TextMessage()
-                    {
-                        Side = MessageSide.Me,
-                        Text = txtSend.Text
-                    };
-                    AddToMessages(msg);
-                    MainContext.Instance.SendMessage(this, msg);
-                    txtSend.Clear();
+                    SendCurrentText();
                 }
             }
  
+        }
+
+        private void SendCurrentText()
+        {
+            string text = txtSend.Text.Trim();
+            if (text.Length == 0) return;
+            TextMessage msg = new TextMessage()
+            {
+                Side = MessageSide.Me,
+                Text = text
+            };
+            AddToMessages(msg);
+            MainContext.Instance.SendMessage(this, msg);
+            txtSend.Clear();
         }
 
         internal ImageMessage CreateImageMessage(string fileName)
@@ -257,8 +267,8 @@ namespace DS_Chat_CS1
 
         private void AddToMessages(Message msg)
         {
-            // ConversationScrollViewer.ScrollToVerticalOffset(ConversationScrollViewer.ExtentHeight);
             messages.Add(msg);
+            ConversationScrollViewer.ScrollToVerticalOffset(ConversationScrollViewer.ExtentHeight);
         }
 
         private Boolean AutoScroll = true;
@@ -288,6 +298,9 @@ namespace DS_Chat_CS1
             }
         }
 
-
+        private void btnSendText_Click(object sender, RoutedEventArgs e)
+        {
+            SendCurrentText();
+        }
     }
 }

@@ -17,6 +17,7 @@ namespace Coordinator
         public string Room;
         public IPEndPoint Endpoint;
         public DateTime lastReceived;
+        public Client client;
 
         public override string ToString()
         {
@@ -61,6 +62,14 @@ namespace Coordinator
         private void OwnServer_NewClient(object sender, Client client)
         {
             client.PacketReceived += Client_PacketReceived;
+            client.ClientDisconnected += Client_ClientDisconnected;
+        }
+
+        private void Client_ClientDisconnected(object sender, DS_Chat_CS1.Core.Events.ClientDisconnectedEventArgs e)
+        {
+            var client = sender as Client;
+            users.RemoveAll( x =>x.client == client  );
+
         }
 
         private void Client_PacketReceived(object sender, DS_Chat_CS1.Core.Events.PacketFullyReceivedEventArgs e)
@@ -89,7 +98,7 @@ namespace Coordinator
                     response = response.Trim();
 
                     IPEndPoint endPoint = new IPEndPoint(client.GetRemoteEndPoint().Address, port);
-                    var u = new UserObject() { Username = username, Endpoint = endPoint, Room = null };
+                    var u = new UserObject() { Username = username, Endpoint = endPoint, Room = null, client = client  };
                     users.Add(u);
                     u.lastReceived = DateTime.Now;
 

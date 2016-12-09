@@ -1,5 +1,4 @@
 ﻿using DS_Chat_CS1.Core.Events;
-using Priority_Queue;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -21,7 +20,7 @@ namespace DS_Chat_CS1.Core.LowLevel
 
     public class PacketSender
     {
-        public static readonly int MAX_LENGTH = 1024*10; //Atomic packet in bytes
+        public static readonly int MAX_LENGTH = 1024*20; //Atomic packet in bytes
 
         internal event EventHandler<DataReadyEventArgs> DataReady;
         internal event EventHandler<PacketSentEventArgs> PacketSent;
@@ -29,7 +28,7 @@ namespace DS_Chat_CS1.Core.LowLevel
         public PacketSender()
         {
             packetsMap = new ConcurrentDictionary<int, PacketObject>();
-            priorityQueue = new FastPriorityQueue<PacketObject>(10000);
+            randomQueue = new List<PacketObject>();//new FastPriorityQueue<PacketObject>(10000);
             urgentQueue = new Queue<PacketObject>();
             _thread = new Thread(Run);
             _thread.Start();
@@ -64,11 +63,12 @@ namespace DS_Chat_CS1.Core.LowLevel
                 }
                 else
                 {
-                    priorityQueue.Enqueue(packet, packet.priority);
-                    if (priorityQueue.Count == priorityQueue.MaxSize)
-                    {
-                        MessageBox.Show("MAX SIZE");
-                    }
+                    randomQueue.Add(packet);
+                    //randomQueue.Enqueue(packet, packet.priority);
+                    //if (randomQueue.Count == randomQueue.MaxSize)
+                    //{
+                    //    MessageBox.Show("MAX SIZE");
+                    //}
                 }
 
             }
@@ -80,6 +80,9 @@ namespace DS_Chat_CS1.Core.LowLevel
         List<byte> dataBuffer = new List<byte>();
         PacketObject ignored;
         bool wasEnd = false;
+
+        int index = 0;
+
         private void Run()
         {
             while (true)
@@ -103,13 +106,16 @@ namespace DS_Chat_CS1.Core.LowLevel
                         }
 
                     }
-                    else if (priorityQueue.Count != 0)
+                    else if (randomQueue.Count != 0)
                     {
-
-                        PacketObject head = priorityQueue.First;
+                        if (index >= randomQueue.Count)
+                        {
+                            index = 0;
+                        }
+                        PacketObject head = randomQueue[index++];
                         if (SendPacketObject(head))
                         {
-                            priorityQueue.Remove(head);
+                            randomQueue.Remove(head);
                             packetsMap.TryRemove(head.id, out ignored);
                             var handler = PacketSent;
                             if (handler != null)
@@ -211,7 +217,7 @@ namespace DS_Chat_CS1.Core.LowLevel
 
         int idCounter = 0;
         int currentId = -1;
-        FastPriorityQueue<PacketObject> priorityQueue;
+        List<PacketObject> randomQueue;
         Queue<PacketObject> urgentQueue;
         ConcurrentDictionary<int, PacketObject> packetsMap;
 
@@ -221,7 +227,7 @@ namespace DS_Chat_CS1.Core.LowLevel
         public static readonly byte END = PacketReceiver.END;
         public static readonly byte ESC = PacketReceiver.ESC;
 
-        class PacketObject : FastPriorityQueueNode
+        class PacketObject
         {
             public int id;
             public int priority = 0;

@@ -13,7 +13,7 @@ using System.Windows;
 
 namespace DS_Chat_CS1
 {
-    public class MainContext
+    public class MainContext : IDisposable
     {
         private static MainContext _instance;
         public static MainContext Instance {
@@ -41,7 +41,7 @@ namespace DS_Chat_CS1
             users = new List<User>();
             chats = new Dictionary<Client, ChatWindow>();
             coordinator = new Client();
-            coordinatorEndpoint = new IPEndPoint(IPAddress.Parse("192.168.1.3"), 1111);
+           // coordinatorEndpoint = new IPEndPoint(IPAddress.Parse("192.168.1.3"), 1111);
             
         }
 
@@ -103,7 +103,7 @@ namespace DS_Chat_CS1
 
         Dictionary<Client, List<ImageFile>> imageFilesMap = new Dictionary<Client, List<ImageFile>>();
         Dictionary<Client, List<MediaFile>> mediaFilesMap = new Dictionary<Client, List<MediaFile>>();
-
+        private object lockk = new object();
         private void Client_PacketReceived(object sender, Core.Events.PacketFullyReceivedEventArgs e)
         {
             FyzrPacket packet = FyzrParser.FromData(e.Packet.data.ToArray());
@@ -133,103 +133,113 @@ namespace DS_Chat_CS1
             }
             else if(packet.method == FyzrPacket.Method.FILE)
             {
-                string fileName = packet.headers["Filename"];
-
-                long segmentLength = Convert.ToInt64(packet.headers["Content-Length"]);
-                long segmentCount = Convert.ToInt64(packet.headers["Segment"]);
-                long totalSegments = Convert.ToInt64(packet.headers["Total-Segments"]);
-
-                long pos = Convert.ToInt64(packet.headers["Position"]);
-
-
-                string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDoc‌​uments) + @"\TestReceived";
-                System.IO.Directory.CreateDirectory(path);
-                path += @"\" +fileName;
-
-                string fileType = packet.headers["File-Type"];
-                if(fileType.Equals("Image"))
+                lock (lockk)
                 {
-                    if (!imageFilesMap.ContainsKey(client))
-                    {
-                        imageFilesMap.Add(client, new List<ImageFile>());
-                    }
 
-                    ImageFile imageFile = imageFilesMap[client].FirstOrDefault(x => x.fileName.Equals(fileName));
-                    if (imageFile == null)
+                    string fileName = packet.headers["Filename"];
+
+                    long segmentLength = Convert.ToInt64(packet.headers["Content-Length"]);
+                    long segmentCount = Convert.ToInt64(packet.headers["Segment"]);
+                    long totalSegments = Convert.ToInt64(packet.headers["Total-Segments"]);
+
+                    long pos = Convert.ToInt64(packet.headers["Position"]);
+
+
+                    string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDoc‌​uments) + @"\TestReceived";
+                    System.IO.Directory.CreateDirectory(path);
+                    path += @"\" + fileName;
+
+                    string fileType = packet.headers["File-Type"];
+                    if (fileType.Equals("Image"))
                     {
-                        imageFile = new ImageFile()
+                        if (!imageFilesMap.ContainsKey(client))
                         {
-                            fileName = fileName,
-                            segmentsCount = 0,
-                            stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None),
-                            imageMessage = chats[client].CreateImageMessage(fileName)
-                        };
-                        imageFile.stream.SetLength(Convert.ToInt64(packet.headers["Total-Length"]));
-                        imageFilesMap[client].Add(imageFile);
-                    }
+                            imageFilesMap.Add(client, new List<ImageFile>());
+                        }
 
-                    imageFile.segmentsCount++;
-
-                    imageFile.stream.Seek(pos, SeekOrigin.Begin);
-
-                    imageFile.stream.Write(packet.body, 0, packet.body.Length);
-
-                    if (imageFile.segmentsCount == totalSegments)
-                    {
-                        imageFile.stream.Flush();
-                        imageFile.stream.Close();
-                        imageFile.stream = null;
-                        imageFile.imageMessage.ImageUrl = path;
-                        Console.WriteLine("Done file");
-                        imageFilesMap.Remove(client);
-
-                    }
-
-                    imageFile.imageMessage.Loading = ((double)imageFile.segmentsCount * 100.0 / totalSegments);
-                }
-
-                else if(fileType.Equals("Media"))
-                {
-                    if (!mediaFilesMap.ContainsKey(client))
-                    {
-                        mediaFilesMap.Add(client, new List<MediaFile>());
-                    }
-
-                    MediaFile mediaFile = mediaFilesMap[client].FirstOrDefault(x => x.fileName.Equals(fileName));
-                    if (mediaFile == null)
-                    {
-                        mediaFile = new MediaFile()
+                        ImageFile imageFile = imageFilesMap[client].FirstOrDefault(x => x.fileName.Equals(fileName));
+                        if (imageFile == null)
                         {
-                            fileName = fileName,
-                            segmentsCount = 0,
-                            stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None),
-                            mediaMessage = chats[client].CreateMediaMessage(fileName)
-                        };
-                        mediaFile.stream.SetLength(Convert.ToInt64(packet.headers["Total-Length"]));
-                        mediaFilesMap[client].Add(mediaFile);
+                            imageFile = new ImageFile()
+                            {
+                                fileName = fileName,
+                                segmentsCount = 0,
+                                stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None),
+                                imageMessage = chats[client].CreateImageMessage(fileName)
+                            };
+                            imageFile.stream.SetLength(Convert.ToInt64(packet.headers["Total-Length"]));
+                            imageFilesMap[client].Add(imageFile);
+                        }
+
+                        imageFile.segmentsCount++;
+
+                        imageFile.stream.Seek(pos, SeekOrigin.Begin);
+
+                        imageFile.stream.Write(packet.body, 0, packet.body.Length);
+
+                        if (imageFile.segmentsCount == totalSegments)
+                        {
+                            imageFile.stream.Flush();
+                            imageFile.stream.Close();
+                            imageFile.stream = null;
+                            imageFile.imageMessage.ImageUrl = path;
+                            Console.WriteLine("Done file");
+                            imageFilesMap[client].Remove(imageFile);
+
+                        }
+
+                        imageFile.imageMessage.Loading = ((double)imageFile.segmentsCount * 100.0 / totalSegments);
                     }
 
-                    mediaFile.segmentsCount++;
-
-                    mediaFile.stream.Seek(pos, SeekOrigin.Begin);
-
-                    mediaFile.stream.Write(packet.body, 0, packet.body.Length);
-
-                    if (mediaFile.segmentsCount == totalSegments)
+                    else if (fileType.Equals("Media"))
                     {
-                        mediaFile.stream.Flush();
-                        mediaFile.stream.Close();
-                        mediaFile.stream = null;
-                        mediaFile.mediaMessage.MediaUrl = path;
-                        Console.WriteLine("Done file");
-                        mediaFilesMap.Remove(client);
+                        if (!mediaFilesMap.ContainsKey(client))
+                        {
+                            mediaFilesMap.Add(client, new List<MediaFile>());
+                        }
 
+                        MediaFile mediaFile = mediaFilesMap[client].FirstOrDefault(x => x.fileName.Equals(fileName));
+                        if (mediaFile == null)
+                        {
+                            try
+                            {
+                                mediaFile = new MediaFile()
+                                {
+                                    fileName = fileName,
+                                    segmentsCount = 0,
+                                    stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None),
+                                    mediaMessage = chats[client].CreateMediaMessage(fileName)
+                                };
+                                mediaFile.stream.SetLength(Convert.ToInt64(packet.headers["Total-Length"]));
+                                mediaFilesMap[client].Add(mediaFile);
+                            } catch(Exception ex)
+                            {
+                                Console.WriteLine("EXCEPTION: " + ex.ToString());
+                                Console.WriteLine("media map size: " + mediaFilesMap[client].Count);
+                            }
+                        }
+
+                        mediaFile.segmentsCount++;
+
+                        mediaFile.stream.Seek(pos, SeekOrigin.Begin);
+
+                        mediaFile.stream.Write(packet.body, 0, packet.body.Length);
+
+                        if (mediaFile.segmentsCount == totalSegments)
+                        {
+                            mediaFile.stream.Flush();
+                            mediaFile.stream.Close();
+                            mediaFile.stream = null;
+                            mediaFile.mediaMessage.MediaUrl = path;
+                            Console.WriteLine("Done file");
+                            mediaFilesMap[client].Remove(mediaFile);
+
+                        }
+
+                        mediaFile.mediaMessage.Loading = ((double)mediaFile.segmentsCount * 100.0 / totalSegments);
                     }
 
-                    mediaFile.mediaMessage.Loading = ((double)mediaFile.segmentsCount * 100.0 / totalSegments);
                 }
-
-
             }
             
 
@@ -304,9 +314,11 @@ namespace DS_Chat_CS1
         }
 
 
-        public bool RegisterNickname(string nickname)
+        public bool RegisterNickname(string nickname, string coordinatorIp, int coordinatorPort)
         {
+            coordinatorEndpoint = new IPEndPoint(IPAddress.Parse(coordinatorIp), coordinatorPort);
             coordinator.StartConnect(coordinatorEndpoint);
+            Thread.Sleep(10);
             coordinator.PacketReceived += Coordinator_PacketReceived;
             FyzrPacket packet = new FyzrPacket();
             packet.method = FyzrPacket.Method.COMMAND;
@@ -347,7 +359,7 @@ namespace DS_Chat_CS1
         }
 
 
-        const int maxSegmentSize = 1024*10;
+        const int maxSegmentSize = 1024*20;
         internal void SendFile(string absolutePath, string fileName)
         {
 
@@ -384,6 +396,7 @@ namespace DS_Chat_CS1
                 pos += buffer.Length;
                 Console.WriteLine("Count: " + segmentCount++);
                 Console.WriteLine("Bytes read: " + bytesRead);
+                Thread.Sleep(2);
             }
         }
         internal void SendMediaFile(ChatWindow chatWindow, string absolutePath, string fileName, MediaMessage msg)
@@ -418,6 +431,7 @@ namespace DS_Chat_CS1
                 pos += buffer.Length;
                 Console.WriteLine("Count: " + segmentCount++);
                 Console.WriteLine("Bytes read: " + bytesRead);
+                Thread.Sleep(2);
             }
         }
 
@@ -432,6 +446,14 @@ namespace DS_Chat_CS1
                 }
             }
             throw new Exception("Local IP Address Not Found!");
+        }
+
+        public void Dispose()
+        {
+            if(coordinator.IsConnected())
+            {
+                coordinator.Disconnect();
+            }
         }
     }
 }

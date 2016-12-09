@@ -35,9 +35,21 @@ namespace DS_Chat_CS1.Pages
         private async void btnConnect_Click(object sender, RoutedEventArgs e)
         {
             string nickname = txtNickname.Text.Trim();
+            string ipStr = txtCoordinatorIp.Text.Trim();
+            string portStr = txtCoordinatorPort.Text.Trim();
             if (nickname.Length == 0)
             {
                 MessageBox.Show("Must enter nickname");
+                return;
+            }
+            if (ipStr.Length == 0)
+            {
+                MessageBox.Show("Must enter IP");
+                return;
+            }
+            if (portStr.Length == 0)
+            {
+                MessageBox.Show("Must enter port");
                 return;
             }
 
@@ -51,7 +63,7 @@ namespace DS_Chat_CS1.Pages
 
             await Task.Run(() =>
             {
-                MainContext.Instance.RegisterNickname(nickname);
+                MainContext.Instance.RegisterNickname(nickname, ipStr, Convert.ToInt32(portStr));
             });
 
             SwitchToLobby();

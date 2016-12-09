@@ -54,5 +54,6 @@ namespace DS_Chat_CS1.Core.LowLevel
             private Thread _thread;
             private Queue<byte[]> sendQueue;
         }
+
     }
 }

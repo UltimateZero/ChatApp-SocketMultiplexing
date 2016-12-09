@@ -91,7 +91,7 @@ namespace DS_Chat_CS1.Core.Protocol
                 }
             }
 
-            Console.WriteLine("From Data: \n" + packet.ToString());
+           // Console.WriteLine("From Data: \n" + packet.ToString());
             return packet;
 
         }
@@ -99,7 +99,7 @@ namespace DS_Chat_CS1.Core.Protocol
 
         public static byte[] ToData(FyzrPacket packet)
         {
-            Console.WriteLine("To Data: \n" + packet.ToString());
+            //Console.WriteLine("To Data: \n" + packet.ToString());
             List<byte> data = new List<byte>();
 
 

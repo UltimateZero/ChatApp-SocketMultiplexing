@@ -42,6 +42,7 @@ namespace DS_Chat_CS1.Core.LowLevel
         // Consumers register to receive data.
         public event EventHandler<PacketFullyReceivedEventArgs> PacketReceived;
         public event EventHandler<PacketSentEventArgs> PacketSent;
+        public event EventHandler<ClientDisconnectedEventArgs> ClientDisconnected;
 
 
         public static ManualResetEvent ShutdownEvent = new ManualResetEvent(false);
@@ -101,7 +102,7 @@ namespace DS_Chat_CS1.Core.LowLevel
         private void OnPacketReceived(object sender, PacketFullyReceivedEventArgs e)
         {
             Packet packet = e.Packet;
-            Console.WriteLine("Received packet " + packet.id);
+            //Console.WriteLine("Received packet " + packet.id);
             //Console.WriteLine("Received full packet: " );
             //Console.WriteLine("[{0}]", string.Join(", ", (Array.ConvertAll(packet.data.ToArray(), c => (int)c))));
             //Console.WriteLine("Full packet as string: " + Encoding.ASCII.GetString(packet.data.ToArray(), 0, packet.data.Count));
@@ -111,7 +112,7 @@ namespace DS_Chat_CS1.Core.LowLevel
 
         private void onPacketSent(object sender, PacketSentEventArgs e)
         {
-            Console.WriteLine("Sent packet " + e.PacketId);
+            //Console.WriteLine("Sent packet " + e.PacketId);
             var handler = PacketSent;
             if (handler != null) PacketSent(this, e);  // re-raise event to outer subscribers
         }
@@ -124,6 +125,19 @@ namespace DS_Chat_CS1.Core.LowLevel
         public IPEndPoint GetRemoteEndPoint()
         {
             return (IPEndPoint) _client.Client.RemoteEndPoint;
+        }
+
+        internal void Disconnect()
+        {
+            _client.Close();
+            var handler = ClientDisconnected;
+            if (handler != null) handler(this, new ClientDisconnectedEventArgs());
+        }
+
+
+        internal bool IsConnected()
+        {
+            return _client.Connected;
         }
 
         private PacketSender _packetsender;

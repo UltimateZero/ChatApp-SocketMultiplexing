@@ -46,7 +46,7 @@ namespace DS_Chat_CS1
         {
             MetroProgressBar bar = sender as MetroProgressBar;
 
-            Console.WriteLine(bar.Value);
+            //Console.WriteLine(bar.Value);
             if(bar.Value == 100)
             {
                 Grid pp = (Grid) bar.Parent;

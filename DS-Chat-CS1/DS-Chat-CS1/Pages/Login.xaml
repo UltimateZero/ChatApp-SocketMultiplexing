@@ -8,7 +8,17 @@
              mc:Ignorable="d" 
              d:DesignHeight="400" d:DesignWidth="500">
     <Grid Background="White">
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,20,0,0">
+            <TextBox Text="192.168.1.3" x:Name="txtCoordinatorIp" Width="150" Controls:TextBoxHelper.Watermark="Coordinator IP" Margin="0,0,0,8"/>
+            <TextBox Text="1111" x:Name="txtCoordinatorPort" Width="150" Controls:TextBoxHelper.Watermark="Coordinator Port"/>
+        </StackPanel>
+        
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
          <TextBox x:Name="txtNickname" Width="150" Controls:TextBoxHelper.Watermark="Nickname" Margin="0,100,0,25" VerticalAlignment="Center" KeyUp="txtNickname_KeyUp" />
             <Button x:Name="btnConnect" Width="70" Style="{DynamicResource SquareButtonStyle}" Content="Connect" Margin="0,0,0,50" VerticalAlignment="Bottom" Click="btnConnect_Click"></Button>
             <StackPanel x:Name="indicatorsPanel" Visibility="Hidden">
