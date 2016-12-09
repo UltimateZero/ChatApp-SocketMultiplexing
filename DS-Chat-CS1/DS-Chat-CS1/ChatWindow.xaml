@@ -19,11 +19,14 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
+        <Grid HorizontalAlignment="Right">
+            <Button x:Name="btnSendImage" Content="Send Image" Click="btnSendImage_Click"/>
+        </Grid>
         
         <!-- Chat messages -->
         <ScrollViewer Grid.Row="1" x:Name="ConversationScrollViewer"
                           HorizontalScrollBarVisibility="Hidden"
-                          VerticalScrollBarVisibility="Hidden">
+                          VerticalScrollBarVisibility="Hidden" ScrollChanged="ScrollViewer_ScrollChanged">
             <StackPanel Orientation="Vertical"
                       x:Name="ConversationContentContainer"
                       VerticalAlignment="Top">

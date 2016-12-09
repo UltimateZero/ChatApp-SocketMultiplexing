@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DS_Chat_CS1.Core.Protocol
 {
-    class FileProtocol : MessageProtocol 
+    public class FileProtocol : MessageProtocol 
     {
         public static FyzrPacket CreateFilePacket(byte[] segment, string fileName, MessageType type, string to)
         {

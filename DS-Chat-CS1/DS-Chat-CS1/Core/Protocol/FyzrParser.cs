@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DS_Chat_CS1.Core.Protocol
 {
-    class FyzrParser
+    public class FyzrParser
     {
         enum Phase
         {
@@ -91,7 +91,7 @@ namespace DS_Chat_CS1.Core.Protocol
                 }
             }
 
-            //Console.WriteLine("From Data: \n" + packet.ToString());
+            Console.WriteLine("From Data: \n" + packet.ToString());
             return packet;
 
         }
@@ -116,8 +116,8 @@ namespace DS_Chat_CS1.Core.Protocol
             }
 
             data.Add((byte)'\n');
-
-            data.AddRange(packet.body);
+            if(packet.body != null)
+                data.AddRange(packet.body);
 
 
             return data.ToArray();

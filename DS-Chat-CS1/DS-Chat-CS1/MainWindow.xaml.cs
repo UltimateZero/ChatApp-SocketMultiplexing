@@ -80,8 +80,7 @@ namespace DS_Chat_CS1
             {
                 case FyzrPacket.Method.TEXT:
                     Encoding enc = Encoding.GetEncoding(packet.headers["Content-Encoding"]);
-                    if (enc == null)
-                        enc = Encoding.Default;
+ 
                     string message = enc.GetString(packet.body);
                     if (toClients.Count != 0 && sender == toClients[0]) //From Alice
                     {

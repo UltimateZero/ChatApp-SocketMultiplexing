@@ -1,6 +1,8 @@
-﻿using System;
+﻿using DS_Chat_CS1.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -23,10 +25,33 @@ namespace DS_Chat_CS1.Pages
         public Lobby()
         {
             InitializeComponent();
-            ListBoxItem item = new ListBoxItem();
-            item.Content = "Hello";
-            item.ToolTip = "IP";
-            listUsers.Items.Add(item);
+            MainContext.Instance.UsersListReceived += MainContext_UsersListReceived;
+        }
+
+        private void MainContext_UsersListReceived(object sender, MainContext.UsersListReceivedEventArgs e)
+        {
+            Dispatcher.Invoke(() => {
+
+                List<User> users = MainContext.Instance.GetUsers();
+                listUsers.Items.Clear();
+                foreach (var user in users)
+                {
+                    ListBoxItem item = new ListBoxItem();
+                    item.MouseDoubleClick += Item_MouseDoubleClick;
+                    item.Content = user.Username;
+                    item.ToolTip = user.Endpoint;
+                    listUsers.Items.Add(item);
+                }
+            });
+
+        }
+
+        private void Item_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            IPEndPoint endPointStr = (sender as ListBoxItem).ToolTip as IPEndPoint;
+
+            MainContext.Instance.OpenChatWindow(endPointStr);
+
         }
     }
 }

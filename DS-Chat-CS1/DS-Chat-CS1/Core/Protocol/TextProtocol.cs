@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DS_Chat_CS1.Core.Protocol
 {
-    class TextProtocol : MessageProtocol
+    public class TextProtocol : MessageProtocol
     {
         public static FyzrPacket CreateTextPacket(string message, MessageType type, string to)
         {

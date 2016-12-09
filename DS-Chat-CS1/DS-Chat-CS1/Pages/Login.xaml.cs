@@ -51,7 +51,7 @@ namespace DS_Chat_CS1.Pages
 
             await Task.Run(() =>
             {
-                Thread.Sleep(1000 * 2);
+                MainContext.Instance.RegisterNickname(nickname);
             });
 
             SwitchToLobby();

@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace DS_Chat_CS1.Core.LowLevel
 {
-    class Packet
+    public class Packet
     {
         public int id;
         public List<byte> data = new List<byte>();
     }
 
-    class PacketReceiver
+    public class PacketReceiver
     {
         internal event EventHandler<PacketFullyReceivedEventArgs> PacketReceived;
 

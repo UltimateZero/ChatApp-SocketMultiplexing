@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace DS_Chat_CS1.Core.LowLevel
 {
-    class TcpServer
+    public class TcpServer
     {
-        TcpListener listener;
+        public TcpListener listener;
 
         public event EventHandler<Client> NewClient;
 
@@ -24,7 +24,7 @@ namespace DS_Chat_CS1.Core.LowLevel
 
         private void WaitForClients()
         {
-            Console.WriteLine("Waiting for clients...");
+            Console.WriteLine("Waiting for clients on " + listener.LocalEndpoint);
             listener.BeginAcceptTcpClient(new AsyncCallback((asyncResult) =>
             {
                 try

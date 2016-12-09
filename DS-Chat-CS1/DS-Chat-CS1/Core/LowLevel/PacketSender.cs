@@ -12,7 +12,7 @@ using System.Windows;
 
 namespace DS_Chat_CS1.Core.LowLevel
 {
-    class PacketSender
+    public class PacketSender
     {
         public static readonly int MAX_LENGTH = 512; //Atomic packet in bytes
 

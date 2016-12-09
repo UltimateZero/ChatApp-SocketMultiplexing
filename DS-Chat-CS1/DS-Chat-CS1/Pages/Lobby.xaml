@@ -23,17 +23,13 @@
             </Grid.RowDefinitions>
             <TextBlock Text="Users" Margin="2,0,0,2"/>
             <ListBox x:Name="listUsers" Grid.Row="1" Width="120" BorderThickness="1">
-                <ListBoxItem>Test</ListBoxItem>
-                <ListBoxItem>Test</ListBoxItem>
-                <ListBoxItem>Test</ListBoxItem>
+
             </ListBox>
             <StackPanel Grid.Row="2" Margin="2,2,0,2" Orientation="Horizontal">
                 <TextBlock Text="Rooms" VerticalAlignment="Bottom" />
             </StackPanel>
             <ListBox x:Name="listRooms" Grid.Row="3" BorderThickness="1">
-                <ListBoxItem>Test</ListBoxItem>
-                <ListBoxItem>Test</ListBoxItem>
-                <ListBoxItem>Test</ListBoxItem>
+
             </ListBox>
             <Button x:Name="btnCreateRoom" Style="{StaticResource AccentedSquareButtonStyle}" Content="Create Room" Grid.Row="4" Margin="0,3,0,0"/>
         </Grid>

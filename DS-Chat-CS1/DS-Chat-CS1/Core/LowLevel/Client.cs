@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace DS_Chat_CS1.Core.LowLevel
 {
-    partial class Client : IDisposable
+    public partial class Client : IDisposable
     {  // Called by producers to send data over the socket.
 
         //public void SendData(string data)
@@ -121,7 +121,7 @@ namespace DS_Chat_CS1.Core.LowLevel
             Client.ShutdownEvent.Set();
         }
 
-        internal IPEndPoint GetRemoteEndPoint()
+        public IPEndPoint GetRemoteEndPoint()
         {
             return (IPEndPoint) _client.Client.RemoteEndPoint;
         }

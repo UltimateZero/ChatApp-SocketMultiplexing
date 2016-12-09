@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DS_Chat_CS1.Core.LowLevel
 {
-    partial class Client
+    public partial class Client
     {
         private class Receiver
         {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DS_Chat_CS1.Core.Events
 {
-    class PacketFullyReceivedEventArgs
+    public class PacketFullyReceivedEventArgs
     {
         public Packet Packet { get; set; }
     }

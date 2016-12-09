@@ -10,14 +10,8 @@
       GlowBrush="{DynamicResource AccentColorBrush}"
 
         WindowStartupLocation="CenterScreen"
-        Title="Chat app" Height="400" Width="500">
-    <Controls:MetroWindow.Flyouts>
-        <Controls:FlyoutsControl>
-            <Controls:Flyout Header="Test Flyout" Position="Right" Width="200" IsAutoCloseEnabled="True" IsOpen="True" >
-                <!-- Your custom content here -->
-            </Controls:Flyout>
-        </Controls:FlyoutsControl>
-    </Controls:MetroWindow.Flyouts>
+        Title="Chat app" Height="400" Width="500" Closed="MetroWindow_Closed">
+
     
 
         <Controls:TransitioningContentControl x:Name="transitioning" Transition="Down">

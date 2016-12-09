@@ -77,10 +77,10 @@
                       local:GridUtils.RowDefinitions=",,,">
                 <Rectangle Fill="White"
                            Grid.RowSpan="3"/>
-                <Image Source="{Binding Path=ImageUrl}" Grid.Row="1"
+                <Image Source="{Binding Path=ImageUrl}" Grid.Row="0"
                              Style="{StaticResource ImageStyle}"
                               Stretch="Uniform"/>
-                <Grid Grid.Row="2" HorizontalAlignment="Center">
+                <Grid Grid.Row="1" HorizontalAlignment="Center">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
@@ -89,7 +89,7 @@
                 </Grid>
                 <TextBlock Text="{Binding Path=Timestamp, Converter={StaticResource StringFormatConverter}, ConverterParameter='ddd, HH:mm'}"
                              Style="{StaticResource TimestampStyle}"
-                             Grid.Row="3"/>
+                             Grid.Row="2"/>
                 <Path Data="m 0,0 l 16,0 l 0,16 l -16,-16"
                     Fill="White"
                     Margin="0,-1,5,0"           

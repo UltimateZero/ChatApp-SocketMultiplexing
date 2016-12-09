@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace DS_Chat_CS1.Model
 {
-    class User
+    public class User
     {
-        public Client Connection;
+        public Client Connection { get; set; }
         public string Username { get; set; }
-        public IPEndPoint Endpoint { get { return Connection.GetRemoteEndPoint(); } }
+        public IPEndPoint Endpoint { get; set; }
     }
 }

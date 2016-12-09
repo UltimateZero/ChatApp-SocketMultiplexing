@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DS_Chat_CS1.Core.Protocol
 {
-    class MessageProtocol
+    public class MessageProtocol
     {
 
         public enum MessageType

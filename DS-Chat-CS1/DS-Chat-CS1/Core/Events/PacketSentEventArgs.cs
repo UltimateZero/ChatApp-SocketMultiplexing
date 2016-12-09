@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DS_Chat_CS1.Core.Events
 {
-    class PacketSentEventArgs
+    public class PacketSentEventArgs
     {
         public int PacketId;
     }

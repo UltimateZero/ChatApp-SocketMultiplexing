@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DS_Chat_CS1.Core.Events
 {
-    class DataReceivedEventArgs : EventArgs
+    public  class DataReceivedEventArgs : EventArgs
     {
         public byte[] Data { get; set; }
     }

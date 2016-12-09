@@ -3,6 +3,7 @@ using MahApps.Metro.Controls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -21,11 +22,19 @@ namespace DS_Chat_CS1
     /// </summary>
     public partial class InitWindow : MetroWindow
     {
+        [DllImport("Kernel32")]
+        public static extern void AllocConsole();
+
+        Login login;
+        Lobby lobby;
         public InitWindow()
         {
+            AllocConsole();
             InitializeComponent();
+            login = new Login();
+            lobby = new Lobby();
             Title = "Login";
-            transitioning.Content = new Login();
+            transitioning.Content = login;
 
         }
 
@@ -33,8 +42,12 @@ namespace DS_Chat_CS1
         public void SwitchToLobby()
         {
             Title = "Lobby";
-            transitioning.Content = new Lobby();
+            transitioning.Content = lobby;
         }
 
+        private void MetroWindow_Closed(object sender, EventArgs e)
+        {
+            Environment.Exit(0);
+        }
     }
 }
