@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -47,6 +48,8 @@ namespace DS_Chat_CS1
 
         private void MetroWindow_Closed(object sender, EventArgs e)
         {
+            MainContext.Instance.SendDisconnect();
+            Thread.Sleep(1000);
             Environment.Exit(0);
         }
     }

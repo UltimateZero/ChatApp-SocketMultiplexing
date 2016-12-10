@@ -66,13 +66,15 @@ namespace DS_Chat_CS1
 
         }
 
-        internal void OpenChatWindow(IPEndPoint endPoint)
+        internal void OpenChatWindow(string endPointStr, string username)
         {
-            var client = chats.Keys.FirstOrDefault(x => x.GetRemoteEndPoint().Equals(endPoint));
+            var client = chats.Keys.FirstOrDefault(x => x.GetRemoteEndPoint().ToString().Equals(endPointStr));
             if(client == null)
             {
+                string[] splitted = endPointStr.Split(':');
+
                 client = new Client();
-                client.StartConnect(endPoint);
+                client.StartConnect(new IPEndPoint(IPAddress.Parse(splitted[0]), Convert.ToInt32(splitted[1])));
                 client.PacketSent += Client_PacketSent;
                 client.PacketReceived += Client_PacketReceived;
                 Application.Current.Dispatcher.Invoke(() =>
@@ -80,7 +82,12 @@ namespace DS_Chat_CS1
                     chats.Add(client, new ChatWindow());
                 });
             }
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                chats[client].SetTitle(username);
+            });
             chats[client].ShowWindow();
+
         }
 
 
@@ -91,6 +98,7 @@ namespace DS_Chat_CS1
             public FileStream stream;
             public ImageMessage imageMessage;
             public long segmentsCount;
+            public long sizeCount;
         }
 
         class MediaFile
@@ -99,6 +107,7 @@ namespace DS_Chat_CS1
             public FileStream stream;
             public MediaMessage mediaMessage;
             public long segmentsCount;
+            public long sizeCount;
         }
 
         Dictionary<Client, List<ImageFile>> imageFilesMap = new Dictionary<Client, List<ImageFile>>();
@@ -108,11 +117,13 @@ namespace DS_Chat_CS1
         {
             FyzrPacket packet = FyzrParser.FromData(e.Packet.data.ToArray());
             Client client = sender as Client;
+            string username = packet.headers["Username"];
             if(!chats.ContainsKey(client))
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     ChatWindow chatWindow = new ChatWindow();
+                    chatWindow.SetTitle(username);
                     chatWindow.ShowWindow();
                     chats.Add(client, chatWindow);
                 });
@@ -141,6 +152,7 @@ namespace DS_Chat_CS1
                     long segmentLength = Convert.ToInt64(packet.headers["Content-Length"]);
                     long segmentCount = Convert.ToInt64(packet.headers["Segment"]);
                     long totalSegments = Convert.ToInt64(packet.headers["Total-Segments"]);
+                    long totalLength = Convert.ToInt64(packet.headers["Total-Length"]);
 
                     long pos = Convert.ToInt64(packet.headers["Position"]);
 
@@ -164,14 +176,16 @@ namespace DS_Chat_CS1
                             {
                                 fileName = fileName,
                                 segmentsCount = 0,
+                                sizeCount = 0,
                                 stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None),
                                 imageMessage = chats[client].CreateImageMessage(fileName)
                             };
-                            imageFile.stream.SetLength(Convert.ToInt64(packet.headers["Total-Length"]));
+                            imageFile.stream.SetLength(totalLength);
                             imageFilesMap[client].Add(imageFile);
                         }
 
                         imageFile.segmentsCount++;
+                        imageFile.sizeCount += segmentLength;
 
                         imageFile.stream.Seek(pos, SeekOrigin.Begin);
 
@@ -189,6 +203,7 @@ namespace DS_Chat_CS1
                         }
 
                         imageFile.imageMessage.Loading = ((double)imageFile.segmentsCount * 100.0 / totalSegments);
+                        imageFile.imageMessage.Progress = SizeSuffix(imageFile.sizeCount) + "/" + SizeSuffix(totalLength);
                     }
 
                     else if (fileType.Equals("Media"))
@@ -207,6 +222,7 @@ namespace DS_Chat_CS1
                                 {
                                     fileName = fileName,
                                     segmentsCount = 0,
+                                    sizeCount = 0,
                                     stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None),
                                     mediaMessage = chats[client].CreateMediaMessage(fileName)
                                 };
@@ -220,6 +236,7 @@ namespace DS_Chat_CS1
                         }
 
                         mediaFile.segmentsCount++;
+                        mediaFile.sizeCount += segmentLength;
 
                         mediaFile.stream.Seek(pos, SeekOrigin.Begin);
 
@@ -237,6 +254,7 @@ namespace DS_Chat_CS1
                         }
 
                         mediaFile.mediaMessage.Loading = ((double)mediaFile.segmentsCount * 100.0 / totalSegments);
+                        mediaFile.mediaMessage.Progress = SizeSuffix(mediaFile.sizeCount) + "/" + SizeSuffix(totalLength);
                     }
 
                 }
@@ -263,12 +281,13 @@ namespace DS_Chat_CS1
                 string cmdType = packet.headers["Command-Type"];
                 if(cmdType.Equals("usersList"))
                 {
+                    users.Clear();
                     Encoding enc = Encoding.GetEncoding(packet.headers["Content-Encoding"]);
                     if (packet.body != null)
                     {
                         string body = enc.GetString(packet.body);
 
-                        users.Clear();
+                        
 
                         string[] lines = body.Split('\n');
                         foreach (string line in lines)
@@ -281,6 +300,11 @@ namespace DS_Chat_CS1
                         var handler = UsersListReceived;
                         if (handler != null) handler(this, new UsersListReceivedEventArgs());
 
+                    }
+                    else
+                    {
+                        var handler = UsersListReceived;
+                        if (handler != null) handler(this, new UsersListReceivedEventArgs());
                     }
 
                     if (requestThread == null)
@@ -313,9 +337,11 @@ namespace DS_Chat_CS1
             coordinator.SendOrdered(FyzrParser.ToData(packet));
         }
 
+        private string ownUsername;
 
         public bool RegisterNickname(string nickname, string coordinatorIp, int coordinatorPort)
         {
+            ownUsername = nickname;
             coordinatorEndpoint = new IPEndPoint(IPAddress.Parse(coordinatorIp), coordinatorPort);
             coordinator.StartConnect(coordinatorEndpoint);
             Thread.Sleep(10);
@@ -355,15 +381,13 @@ namespace DS_Chat_CS1
         {
             var client = chats.FirstOrDefault(x => x.Value == chatWindow).Key;
             var packet = TextProtocol.CreateTextPacket(msg.Text, MessageProtocol.MessageType.PRIVATE, null);
+            packet.headers.Add("Username", ownUsername);
             client.SendOrdered(FyzrParser.ToData(packet));
         }
 
 
         const int maxSegmentSize = 1024*20;
-        internal void SendFile(string absolutePath, string fileName)
-        {
 
-        }
         internal void SendImageFile(ChatWindow chatWindow, string absolutePath, string fileName, ImageMessage msg)
         {
             var client = chats.FirstOrDefault(x => x.Value == chatWindow).Key;
@@ -373,6 +397,7 @@ namespace DS_Chat_CS1
 
             long length = fileStream.Length;
             long segmentCount = 1;
+            long sizeCount = 0;
             long totalSegments = (long)Math.Ceiling((double)length / buffer.Length);
 
             long pos = 0;
@@ -380,7 +405,7 @@ namespace DS_Chat_CS1
             while (pos < length)
             {
                 int bytesRead = fileStream.Read(buffer, 0, buffer.Length);
-
+                sizeCount += bytesRead;
                 byte[] data = new byte[bytesRead];
                 Array.Copy(buffer, 0, data, 0, bytesRead);
 
@@ -390,9 +415,11 @@ namespace DS_Chat_CS1
                 packet.headers.Add("Segment", "" + segmentCount);
                 packet.headers.Add("Position", "" + pos);
                 packet.headers.Add("File-Type", "Image");
+                packet.headers.Add("Username", ownUsername);
 
                 client.SendRandom(FyzrParser.ToData(packet));
                 msg.Loading = ((double)segmentCount * 100.0 / totalSegments);
+                msg.Progress = SizeSuffix(sizeCount) + "/" + SizeSuffix(length);
                 pos += buffer.Length;
                 Console.WriteLine("Count: " + segmentCount++);
                 Console.WriteLine("Bytes read: " + bytesRead);
@@ -408,6 +435,7 @@ namespace DS_Chat_CS1
 
             long length = fileStream.Length;
             long segmentCount = 1;
+            long sizeCount = 0;
             long totalSegments = (long)Math.Ceiling((double)length / buffer.Length);
 
             long pos = 0;
@@ -415,7 +443,7 @@ namespace DS_Chat_CS1
             while (pos < length)
             {
                 int bytesRead = fileStream.Read(buffer, 0, buffer.Length);
-
+                sizeCount += bytesRead;
                 byte[] data = new byte[bytesRead];
                 Array.Copy(buffer, 0, data, 0, bytesRead);
 
@@ -425,9 +453,11 @@ namespace DS_Chat_CS1
                 packet.headers.Add("Segment", "" + segmentCount);
                 packet.headers.Add("Position", "" + pos);
                 packet.headers.Add("File-Type", "Media");
+                packet.headers.Add("Username", ownUsername);
 
                 client.SendRandom(FyzrParser.ToData(packet));
                 msg.Loading = ((double)segmentCount * 100.0 / totalSegments);
+                msg.Progress = SizeSuffix(sizeCount) + "/" + SizeSuffix(length);
                 pos += buffer.Length;
                 Console.WriteLine("Count: " + segmentCount++);
                 Console.WriteLine("Bytes read: " + bytesRead);
@@ -448,12 +478,31 @@ namespace DS_Chat_CS1
             throw new Exception("Local IP Address Not Found!");
         }
 
+        public void SendDisconnect()
+        {
+            FyzrPacket packet = new FyzrPacket();
+            packet.method = FyzrPacket.Method.COMMAND;
+            packet.headers.Add("Command-Type", "disconnect");
+            packet.headers.Add("Username", ownUsername);
+
+            coordinator.SendOrdered(FyzrParser.ToData(packet));
+        }
+
         public void Dispose()
         {
-            if(coordinator.IsConnected())
-            {
-                coordinator.Disconnect();
-            }
+   
+        }
+        static readonly string[] SizeSuffixes =
+                   { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+        static string SizeSuffix(Int64 value)
+        {
+            if (value < 0) { return "-" + SizeSuffix(-value); }
+            if (value == 0) { return "0.0 bytes"; }
+
+            int mag = (int)Math.Log(value, 1024);
+            decimal adjustedSize = (decimal)value / (1L << (mag * 10));
+
+            return string.Format("{0:n1} {1}", adjustedSize, SizeSuffixes[mag]);
         }
     }
 }

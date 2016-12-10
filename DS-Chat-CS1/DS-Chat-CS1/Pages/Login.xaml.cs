@@ -42,6 +42,11 @@ namespace DS_Chat_CS1.Pages
                 MessageBox.Show("Must enter nickname");
                 return;
             }
+            if(nickname.Contains('#'))
+            {
+                MessageBox.Show("Not allowed characters: #");
+                return;
+            }
             if (ipStr.Length == 0)
             {
                 MessageBox.Show("Must enter IP");

@@ -127,7 +127,7 @@ namespace DS_Chat_CS1.Core.LowLevel
             return (IPEndPoint) _client.Client.RemoteEndPoint;
         }
 
-        internal void Disconnect()
+        public void Disconnect()
         {
             _client.Close();
             var handler = ClientDisconnected;
@@ -135,7 +135,7 @@ namespace DS_Chat_CS1.Core.LowLevel
         }
 
 
-        internal bool IsConnected()
+        public bool IsConnected()
         {
             return _client.Connected;
         }

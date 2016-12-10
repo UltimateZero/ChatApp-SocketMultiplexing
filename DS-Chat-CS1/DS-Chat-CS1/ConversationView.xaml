@@ -21,14 +21,14 @@
 
         <Style TargetType="Image" x:Key="ImageStyle">
             <Setter Property="Margin" Value="0"/>
-            <Setter Property="Width" Value="256"/>
-            <Setter Property="Height" Value="256"/>
+            <Setter Property="Width" Value="512"/>
+            <Setter Property="Height" Value="512"/>
         </Style>
 
         <Style TargetType="MediaElement" x:Key="mediaStyle">
             <Setter Property="Margin" Value="0"/>
-            <Setter Property="Width" Value="256"/>
-            <Setter Property="Height" Value="256"/>
+            <Setter Property="Width" Value="512"/>
+            <Setter Property="Height" Value="512"/>
         </Style>
 
         <Style TargetType="TextBlock" x:Key="TimestampStyle">
@@ -41,12 +41,12 @@
             <Grid Margin="30, 10, 5, 0"
                       local:GridUtils.RowDefinitions=",,">
                 <Rectangle Fill="White"
-                           Grid.RowSpan="2" Width="50"/>
+                           Grid.RowSpan="2"/>
                 <TextBox Text="{Binding Path=Text}"
-                             Style="{StaticResource TextBlockStyle}" HorizontalAlignment="Right"/>
+                             Style="{StaticResource TextBlockStyle}" />
                 <TextBlock Text="{Binding Path=Timestamp, Converter={StaticResource StringFormatConverter}, ConverterParameter='ddd, HH:mm'}"
                              Style="{StaticResource TimestampStyle}"
-                             Grid.Row="1" HorizontalAlignment="Right"/>
+                             Grid.Row="1" />
                 <Path Data="m 0,0 l 16,0 l 0,16 l -16,-16"
                     Fill="White"
                     Margin="0,-1,5,0"           
@@ -79,14 +79,26 @@
                            Grid.RowSpan="3"/>
                 <Image Source="{Binding Path=ImageUrl}" Grid.Row="0"
                              Style="{StaticResource ImageStyle}"
-                              Stretch="Uniform"/>
+                              Stretch="Uniform">
+                    <Image.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Open" Click="OpenImage_Click"></MenuItem></ContextMenu>
+                    </Image.ContextMenu>
+                </Image>
                 <Grid Grid.Row="1" HorizontalAlignment="Center">
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
-                    <Controls:MetroProgressBar Value="{Binding Path=Loading}" Width="256"  HorizontalAlignment="Center"/>
+                    <Controls:MetroProgressBar Value="{Binding Path=Loading}" Width="256"  HorizontalAlignment="Center" ValueChanged="progImgbar_ValueChanged"/>
                     <TextBlock Text="{Binding Path=Loading, StringFormat='\{0:N2\}%'}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold"/>
+
+                    <TextBlock Text="{Binding Path=Progress}" HorizontalAlignment="Center" Grid.Row="1"/>
                 </Grid>
+                <TextBlock Grid.Row="2" Text="{Binding Path=Filename}" HorizontalAlignment="Center"/>
                 <TextBlock Text="{Binding Path=Timestamp, Converter={StaticResource StringFormatConverter}, ConverterParameter='ddd, HH:mm'}"
                              Style="{StaticResource TimestampStyle}"
                              Grid.Row="2"/>
@@ -106,16 +118,28 @@
                         HorizontalAlignment="Left"/>
                 <Rectangle Fill="White"
                              Grid.Row="1" Grid.RowSpan="3"/>
-              
-                    <Image Source="{Binding Path=ImageUrl}" Grid.Row="1"
+
+                <Image Source="{Binding Path=ImageUrl}" Grid.Row="1"
                              Style="{StaticResource ImageStyle}"
-                              Stretch="Uniform"/>
+                              Stretch="Uniform">
+                    <Image.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Open" Click="OpenImage_Click"></MenuItem>
+                        </ContextMenu>
+                    </Image.ContextMenu>
+                </Image>
                     <Grid Grid.Row="2" HorizontalAlignment="Center">
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"></ColumnDefinition></Grid.ColumnDefinitions>
-                    <Controls:MetroProgressBar Value="{Binding Path=Loading}" Width="256"  HorizontalAlignment="Center" />
+                    <Controls:MetroProgressBar x:Name="progImgbar" Value="{Binding Path=Loading}" Width="256"  HorizontalAlignment="Center" ValueChanged="progImgbar_ValueChanged" />
                     <TextBlock Text="{Binding Path=Loading, StringFormat='\{0:N2\}%'}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding Path=Progress}" HorizontalAlignment="Center" Grid.Row="1"/>
                     </Grid>
+                <TextBlock Grid.Row="3" Text="{Binding Path=Filename}" HorizontalAlignment="Center"/>
                     <TextBlock Text="{Binding Path=Timestamp, Converter={StaticResource StringFormatConverter}, ConverterParameter='ddd, HH:mm'}"
                              Style="{StaticResource TimestampStyle}"
                              Grid.Row="3"/>
@@ -129,14 +153,39 @@
                            Grid.RowSpan="3"/>
                 <MediaElement Source="{Binding Path=MediaUrl}" Grid.Row="0"
                              Style="{StaticResource mediaStyle}" MouseLeftButtonUp="MediaElement_MouseLeftButtonUp" LoadedBehavior="Manual"
-                              Stretch="Uniform"/>
-                    <Grid Grid.Row="1" HorizontalAlignment="Center">
+                              Stretch="Uniform">
+                    <MediaElement.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Open" Click="OpenMedia_Click"/>
+                        </ContextMenu>
+                    </MediaElement.ContextMenu>
+                </MediaElement>
+                <Grid Grid.Row="1" HorizontalAlignment="Center">
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <Controls:MetroProgressBar Value="{Binding Path=Loading}" Width="256"  HorizontalAlignment="Center" ValueChanged="MetroProgressBar_ValueChanged"/>
-                       <TextBlock Text="{Binding Path=Loading, StringFormat='\{0:N2\}%'}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold"/>
-                    </Grid>
+                    <TextBlock Text="{Binding Path=Loading, StringFormat='\{0:N2\}%'}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding Path=Progress}" HorizontalAlignment="Center" Grid.Row="1"/>
+                </Grid>
+                <Grid Grid.Row="1" HorizontalAlignment="Center" Visibility="Hidden">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Slider Value="50" ValueChanged="sliderVolume_ValueChanged" Grid.Row="0"/>
+                    <StackPanel Grid.Row="1"  Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Button Content="Play" Click="btnPlayClicked" />
+                        <Button Content="Pause" Click="btnPauseClicked"/>
+                        <Button Content="Stop" Click="btnStopClicked" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding Path=Filename}" Grid.Row="2"/>
+                </Grid>
                     <TextBlock Text="{Binding Path=Timestamp, Converter={StaticResource StringFormatConverter}, ConverterParameter='ddd, HH:mm'}"
                              Style="{StaticResource TimestampStyle}"
                              Grid.Row="2"/>
@@ -158,13 +207,38 @@
                              Grid.Row="1" Grid.RowSpan="3"/>
                 <MediaElement Source="{Binding Path=MediaUrl}" Grid.Row="1"
                              Style="{StaticResource mediaStyle}" MouseLeftButtonUp="MediaElement_MouseLeftButtonUp" LoadedBehavior="Manual"
-                              Stretch="Uniform"/>
+                              Stretch="Uniform">
+                    <MediaElement.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Open" Click="OpenMedia_Click"/>
+                        </ContextMenu>
+                    </MediaElement.ContextMenu>
+                </MediaElement>
                 <Grid Grid.Row="2" HorizontalAlignment="Center">
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
                     <Controls:MetroProgressBar Value="{Binding Path=Loading}" Width="256"  HorizontalAlignment="Center"  ValueChanged="MetroProgressBar_ValueChanged"/>
                     <TextBlock Text="{Binding Path=Loading, StringFormat='\{0:N2\}%'}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding Path=Progress}" HorizontalAlignment="Center" Grid.Row="1"/>
+                </Grid>
+                <Grid Grid.Row="2" HorizontalAlignment="Center" Visibility="Hidden">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Slider Value="50" ValueChanged="sliderVolume_ValueChanged" Grid.Row="0"/>
+                    <StackPanel Grid.Row="1"  Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Button Content="Play" Click="btnPlayClicked" />
+                        <Button Content="Pause" Click="btnPauseClicked"/>
+                        <Button Content="Stop" Click="btnStopClicked" />
+                    </StackPanel>
+                    <TextBlock Grid.Row="2" Text="{Binding Path=Filename}"/>
                 </Grid>
                 <TextBlock Text="{Binding Path=Timestamp, Converter={StaticResource StringFormatConverter}, ConverterParameter='ddd, HH:mm'}"
                              Style="{StaticResource TimestampStyle}"

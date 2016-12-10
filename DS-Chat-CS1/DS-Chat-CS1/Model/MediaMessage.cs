@@ -21,6 +21,29 @@ namespace DS_Chat_CS1.Model
                 RaisePropertyChanged("MediaUrl");
             }
         }
+
+        private string _progress;
+        public string Progress
+        {
+            get { return _progress; }
+            set
+            {
+                _progress = value;
+                RaisePropertyChanged("Progress");
+            }
+        }
+
+        private string _fileName;
+        public string Filename
+        {
+            get { return _fileName; }
+            set
+            {
+                _fileName = value;
+                RaisePropertyChanged("Filename");
+            }
+        }
+
         private double _loading = 0;
         public double Loading
         {

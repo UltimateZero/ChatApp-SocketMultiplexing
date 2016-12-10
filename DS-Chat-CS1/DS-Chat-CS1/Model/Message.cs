@@ -21,7 +21,7 @@ namespace DS_Chat_CS1.Model
         public Message()
         {
             Timestamp = _now;
-            _now = _now.AddMinutes(_rand.Next(100));
+            //_now = _now.AddMinutes(_rand.Next(100));
         }
 
         

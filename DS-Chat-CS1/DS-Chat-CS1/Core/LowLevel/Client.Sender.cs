@@ -39,7 +39,14 @@ namespace DS_Chat_CS1.Core.LowLevel
                         if (sendQueue.Count != 0)
                         {
                             byte[] data = sendQueue.Dequeue();
-                            _stream.Write(data, 0, data.Length);
+                            try
+                            {
+                                _stream.Write(data, 0, data.Length);
+                            } catch(Exception e)
+                            {
+                                Console.WriteLine("Exception in sender thread: " + e + ", exiting..");
+                                break;
+                            }
                         }
                         else
                         {

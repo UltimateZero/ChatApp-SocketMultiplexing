@@ -25,71 +25,18 @@ namespace DS_Chat_CS1
     public partial class ChatWindow : MetroWindow
     {
         public MessageCollection messages = new MessageCollection();
-        [DllImport("Kernel32")]
-        public static extern void AllocConsole();
+
         public ChatWindow()
         {
-           // AllocConsole();
             InitializeComponent();
-        //    messages.Add(new TextMessage()
-        //    {
-        //        Side = MessageSide.You,
-        //        Text = "Hello sir. How may I help you?"
-        //    });
-
-        //    messages.Add(new TextMessage()
-        //    {
-        //        Side = MessageSide.Me,
-        //        Text = "Hello sir. How may I help you?"
-        //    });
-
-        //    var msg = new MediaMessage()
-        //    {
-        //        Side = MessageSide.You
-        //    };
-
-
-
-        //    var msg1 = new ImageMessage()
-        //    {
-        //        Side = MessageSide.You,
-        //        ImageUrl = @"C:\Users\UltimateZero\Pictures\maxresdefault.jpg", Loading=100
-        //};
-
-        //    messages.Add(msg1);
-        //    messages.Add(new ImageMessage()
-        //    {
-        //        Side = MessageSide.Me,
-        //        ImageUrl = @"C:\Users\UltimateZero\Pictures\maxresdefault.jpg",
-        //        Loading = 100
-        //    });
-
-
-
-
-        //    messages.Add(new MediaMessage()
-        //    {
-        //        Side = MessageSide.Me,
-        //        MediaUrl = @"D:\MovieZ\Spectre (2015)\Spectre+(2015)+1080p+BluRay+[DayT.se].mp4",
-        //        Loading = 0
-        //    });
-        //    messages.Add(new MediaMessage()
-        //    {
-        //        Side = MessageSide.You,
-        //        MediaUrl = @"D:\MovieZ\Spectre (2015)\Spectre+(2015)+1080p+BluRay+[DayT.se].mp4",
-        //        Loading = 0
-        //    });
-
-        //    var asd = new MediaMessage()
-        //    {
-        //        Side = MessageSide.You,
-        //        MediaUrl = @"D:\MovieZ\Spectre (2015)\Spectre+(2015)+1080p+BluRay+[DayT.se].mp4",
-        //        Loading = 0
-        //    };
-        //    messages.Add(asd);
-        //     test(asd);
+    
 
             this.DataContext = messages;
+        }
+
+        public void SetTitle(string title)
+        {
+            Title = "Chat with " + title;
         }
 
         internal void AddTextMessage(TextMessage msg)
@@ -106,19 +53,7 @@ namespace DS_Chat_CS1
             });
         }
 
-        private async void test(MediaMessage msg)
-        {
-            await Task.Run(() => {
-                for(int i = 0; i < 4; i++)
-                {
-                    Thread.Sleep(500);
-                    msg.Loading += 25;
-                }
-                
-            });
-            msg.MediaUrl = @"D:\MovieZ\Spectre (2015)\Spectre+(2015)+1080p+BluRay+[DayT.se].mp4"; // @"C:\Users\UltimateZero\Pictures\maxresdefault.jpg";
-            Console.WriteLine("Done");
-        }
+
 
         private void txtSend_PreviewKeyDown(object sender, KeyEventArgs e)
         {
@@ -154,7 +89,8 @@ namespace DS_Chat_CS1
         {
             var msg = new ImageMessage()
             {
-                Side = MessageSide.You
+                Side = MessageSide.You,
+                Filename = fileName
             };
             Dispatcher.Invoke(() => { AddToMessages(msg); });
             
@@ -175,7 +111,7 @@ namespace DS_Chat_CS1
 
                 // Set filter for file extension and default file extension 
                 dlg.DefaultExt = ".png";
-                dlg.Filter = "JPEG Files (*.jpeg)|*.jpeg|PNG Files (*.png)|*.png|JPG Files (*.jpg)|*.jpg|GIF Files (*.gif)|*.gif";
+                dlg.Filter = "PNG Files (*.png)|*.png|JPEG Files (*.jpeg)|*.jpeg|JPG Files (*.jpg)|*.jpg|GIF Files (*.gif)|*.gif";
 
 
                 // Display OpenFileDialog by calling ShowDialog method 
@@ -192,7 +128,8 @@ namespace DS_Chat_CS1
                     var msg = new ImageMessage()
                     {
                         ImageUrl = path,
-                        Side = MessageSide.Me
+                        Side = MessageSide.Me,
+                        Filename = filename
                     };
                     AddToMessages(msg);
                     Task.Run(() =>
@@ -211,7 +148,8 @@ namespace DS_Chat_CS1
         {
             var msg = new MediaMessage()
             {
-                Side = MessageSide.You
+                Side = MessageSide.You,
+                Filename = fileName
             };
             Dispatcher.Invoke(() => { AddToMessages(msg); });
 
@@ -231,8 +169,8 @@ namespace DS_Chat_CS1
 
 
                 // Set filter for file extension and default file extension 
-                dlg.DefaultExt = ".png";
-                dlg.Filter = "MP3 Files (*.mp3)|*.mp3|MP4 Files (*.mp4)|*.mp4|AVI Files (*.avi)|*.avi";
+                dlg.DefaultExt = ".mp4";
+                dlg.Filter = "MP3 Files (*.mp3)|*.mp3|WAV Files (*.wav)|*.wav|MP4 Files (*.mp4)|*.mp4|AVI Files (*.avi)|*.avi";
 
 
                 // Display OpenFileDialog by calling ShowDialog method 
@@ -249,7 +187,8 @@ namespace DS_Chat_CS1
                     var msg = new MediaMessage()
                     {
                         MediaUrl = path,
-                        Side = MessageSide.Me
+                        Side = MessageSide.Me,
+                        Filename = filename
                     };
                     AddToMessages(msg);
                     Task.Run(() =>
@@ -301,6 +240,14 @@ namespace DS_Chat_CS1
         private void btnSendText_Click(object sender, RoutedEventArgs e)
         {
             SendCurrentText();
+        }
+
+
+
+        private void MetroWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = true;
+            Hide();
         }
     }
 }

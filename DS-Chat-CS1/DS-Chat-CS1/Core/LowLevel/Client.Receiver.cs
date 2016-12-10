@@ -65,6 +65,7 @@ namespace DS_Chat_CS1.Core.LowLevel
                         catch (IOException ex)
                         {
                             Console.WriteLine(ex.ToString());
+                            throw ex; 
                             // Handle the exception...
                         }
                     }

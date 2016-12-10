@@ -39,7 +39,7 @@ namespace DS_Chat_CS1.Pages
                     ListBoxItem item = new ListBoxItem();
                     item.MouseDoubleClick += Item_MouseDoubleClick;
                     item.Content = user.Username;
-                    item.ToolTip = user.Endpoint;
+                    item.ToolTip = user.Endpoint.ToString();
                     listUsers.Items.Add(item);
                 }
             });
@@ -48,9 +48,9 @@ namespace DS_Chat_CS1.Pages
 
         private void Item_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            IPEndPoint endPointStr = (sender as ListBoxItem).ToolTip as IPEndPoint;
+            string endPointStr = (sender as ListBoxItem).ToolTip as string;
 
-            MainContext.Instance.OpenChatWindow(endPointStr);
+            MainContext.Instance.OpenChatWindow(endPointStr, (sender as ListBoxItem).Content.ToString());
 
         }
     }

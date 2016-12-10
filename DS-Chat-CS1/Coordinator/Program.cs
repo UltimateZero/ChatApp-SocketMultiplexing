@@ -55,7 +55,9 @@ namespace Coordinator
             while(true)
             {
                 Thread.Sleep(1000 * 10);
-                users.RemoveAll(u => (DateTime.Now - u.lastReceived).Seconds > 30);
+                int removed = users.RemoveAll(u => (DateTime.Now - u.lastReceived).Seconds > 30);
+                if(removed != 0)
+                    Console.WriteLine("Removed " + removed + " idle clients");
             }
         }
 
@@ -68,12 +70,14 @@ namespace Coordinator
         private void Client_ClientDisconnected(object sender, DS_Chat_CS1.Core.Events.ClientDisconnectedEventArgs e)
         {
             var client = sender as Client;
-            users.RemoveAll( x =>x.client == client  );
+            int removed = users.RemoveAll( x =>x.client == client  );
+            Console.WriteLine("Removed " + removed + " disconnected clients");
 
         }
 
         private void Client_PacketReceived(object sender, DS_Chat_CS1.Core.Events.PacketFullyReceivedEventArgs e)
         {
+            //Console.WriteLine("Received something");
             var client = sender as Client;
             FyzrPacket packet = FyzrParser.FromData(e.Packet.data.ToArray());
 
@@ -137,6 +141,11 @@ namespace Coordinator
 
                     client.SendOrdered(FyzrParser.ToData(responsePacket));
 
+                }
+                else if(cmdType.Equals("disconnect"))
+                {
+                    Console.WriteLine("Disconnect received");
+                    client.Disconnect();
                 }
                     
              

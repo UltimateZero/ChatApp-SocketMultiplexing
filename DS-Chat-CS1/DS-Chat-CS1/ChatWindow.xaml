@@ -10,7 +10,7 @@
         GlowBrush="{DynamicResource AccentColorBrush}"
 
         WindowStartupLocation="CenterScreen"
-        Title="Chat Window" Height="400" Width="500" Background="{DynamicResource AccentColorBrush}">
+        Title="Chat Window" Height="604" Width="668" Background="{DynamicResource AccentColorBrush}" Closing="MetroWindow_Closing">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
